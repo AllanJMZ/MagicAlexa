@@ -57,9 +57,16 @@ export function useProductViews() {
       return nextMap
     })
 
-    // 2. Safely attempt to increment in Supabase if column exists
+    // 2. Try calling increment_product_views RPC first (best practice for public atomic views)
     try {
-      // Fire-and-forget update to Supabase products table (if views column exists)
+      const { error: rpcError } = await supabase.rpc('increment_product_views', { p_id: productId })
+      if (!rpcError) return
+    } catch {
+      // ignore if RPC not configured yet
+    }
+
+    // 3. Fallback: direct update in Supabase products table (if views column exists)
+    try {
       await supabase
         .from('products')
         .update({ views: updatedCount })
@@ -69,11 +76,16 @@ export function useProductViews() {
     }
   }
 
-  const getViewCount = (productId: string): number => {
-    return viewsMap[productId] || 0
+  const getViewCount = (productId: string, product?: Product): number => {
+    const dbViews = product?.views ?? 0
+    const localViews = viewsMap[productId] || 0
+    return Math.max(dbViews, localViews)
   }
 
-  const getTotalViews = (): number => {
+  const getTotalViews = (products?: Product[]): number => {
+    if (products && products.length > 0) {
+      return products.reduce((acc, p) => acc + Math.max(p.views ?? 0, viewsMap[p.id] || 0), 0)
+    }
     return Object.values(viewsMap).reduce((acc, curr) => acc + curr, 0)
   }
 
@@ -84,7 +96,7 @@ export function useProductViews() {
     return products
       .map((p) => ({
         product: p,
-        views: viewsMap[p.id] || (p.views ?? 0),
+        views: Math.max(p.views ?? 0, viewsMap[p.id] || 0),
       }))
       .filter((item) => item.views > 0)
       .sort((a, b) => b.views - a.views)
@@ -92,7 +104,7 @@ export function useProductViews() {
   }
 
   const resetAllViews = () => {
-    if (confirm('¿Estás seguro de reiniciar todos los contadores de vistas a 0?')) {
+    if (confirm('¿Estás seguro de reiniciar todos los contadores locales de vistas a 0?')) {
       setViewsMap({})
       try {
         localStorage.removeItem(STORAGE_KEY)

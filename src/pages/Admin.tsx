@@ -457,8 +457,8 @@ function ProductsAdmin({
 
   const sortedProducts = [...products].sort((a, b) => {
     if (sortBy === 'views') {
-      const vA = getViewCount(a.id)
-      const vB = getViewCount(b.id)
+      const vA = getViewCount(a.id, a)
+      const vB = getViewCount(b.id, b)
       return vB - vA
     }
     if (sortBy === 'price_asc') {
@@ -471,7 +471,7 @@ function ProductsAdmin({
   })
 
   const topViewed = getTopViewedProducts(products, 5)
-  const totalViews = getTotalViews()
+  const totalViews = getTotalViews(products)
 
   return (
     <div>
@@ -588,7 +588,7 @@ function ProductsAdmin({
         {sortedProducts.map((p) => {
           const imgs = getProductImages(p)
           const firstImg = imgs[0] || 'https://images.unsplash.com/photo-1546776310-eef45dd6d63c?w=400'
-          const views = getViewCount(p.id)
+          const views = getViewCount(p.id, p)
           return (
             <div key={p.id} className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 dark:bg-[#1F1B24] border border-pink-100/50 dark:border-purple-800/20">
               <div className="relative flex-shrink-0">

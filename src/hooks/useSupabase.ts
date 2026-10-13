@@ -71,6 +71,11 @@ const DEMO_SETTINGS: SiteSettings = {
   banner_text_en: 'Safe shipping nationwide! Inquire about exclusive items on WhatsApp ✨',
   banner_active: true,
   banner_link: '',
+  season_image_url: './season-image.jpg',
+  season_title_es: '✨ Temporada Otoño 2026',
+  season_title_en: '✨ Autumn Season 2026',
+  season_desc_es: 'Nuevas piezas de la colección de temporada ya disponibles 🍂',
+  season_desc_en: 'New seasonal collection pieces now available 🍂',
 }
 
 // ─── Hooks ────────────────────────────────────────────

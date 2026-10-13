@@ -38,4 +38,10 @@ export interface SiteSettings {
   banner_text_en: string
   banner_active: boolean
   banner_link: string
+  season_image_url?: string | null
+  season_title_es?: string | null
+  season_title_en?: string | null
+  season_desc_es?: string | null
+  season_desc_en?: string | null
 }
+

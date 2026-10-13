@@ -2,13 +2,32 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Heart, Package, ShieldCheck, Sparkles, Star, Truck, Zap } from 'lucide-react'
 import { useReveal, useMounted } from '../hooks/useAnimations'
-import { useProducts } from '../hooks/useSupabase'
+import { useProducts, useSiteSettings } from '../hooks/useSupabase'
+import AnimatedStar from '../components/AnimatedStar'
 
 export default function Home() {
   const { t, i18n } = useTranslation()
   const mounted = useMounted()
   const { products } = useProducts()
+  const { settings } = useSiteSettings()
   const lang = i18n.language as 'es' | 'en'
+
+  // Local fallback if saved in admin
+  const localSeasonal = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('magic_season_settings') || '{}')
+    } catch {
+      return {}
+    }
+  })()
+
+  const seasonImage = settings?.season_image_url || localSeasonal.season_image_url || './season-image.jpg'
+  const seasonTitle = (lang === 'en' ? settings?.season_title_en : settings?.season_title_es)
+    || (lang === 'en' ? localSeasonal.season_title_en : localSeasonal.season_title_es)
+    || (lang === 'es' ? '✨ Temporada Otoño 2026' : '✨ Autumn Season 2026')
+  const seasonDesc = (lang === 'en' ? settings?.season_desc_en : settings?.season_desc_es)
+    || (lang === 'en' ? localSeasonal.season_desc_en : localSeasonal.season_desc_es)
+    || (lang === 'es' ? 'Nuevas piezas de la colección de temporada ya disponibles 🍂' : 'New seasonal collection pieces now available 🍂')
 
   const featuresReveal = useReveal(0.1)
   const ctaReveal = useReveal(0.15)
@@ -50,7 +69,7 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-16 sm:py-24 lg:py-32">
+      <section className="relative overflow-hidden py-12 sm:py-20 lg:py-24">
         {/* Background decoration */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-pink-200/30 dark:bg-pink-900/10 rounded-full blur-3xl animate-float" />
@@ -59,92 +78,161 @@ export default function Home() {
         </div>
 
         {/* Floating sparkles */}
-        <div className="absolute top-20 left-[10%] animate-float">
+        <div className="absolute top-20 left-[8%] animate-float">
           <Star className="w-4 h-4 text-yellow-300 fill-yellow-300 opacity-60" />
         </div>
-        <div className="absolute top-32 right-[15%] animate-float-delayed">
+        <div className="absolute top-32 right-[10%] animate-float-delayed">
           <Sparkles className="w-5 h-5 text-pink-300 opacity-50" />
         </div>
-        <div className="absolute bottom-20 left-[20%] animate-float">
+        <div className="absolute bottom-20 left-[15%] animate-float">
           <Heart className="w-4 h-4 text-pink-300 fill-pink-300 opacity-40" />
         </div>
-        <div className="absolute bottom-32 right-[25%] animate-float-delayed">
+        <div className="absolute bottom-32 right-[20%] animate-float-delayed">
           <Star className="w-3 h-3 text-purple-300 fill-purple-300 opacity-50" />
         </div>
 
-        <div className="max-w-4xl mx-auto px-4 text-center relative">
-          {/* Badge */}
-          <div
-            className={`inline-flex items-center gap-2 px-4 py-1.5 mb-6 rounded-full bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 border border-pink-200/50 dark:border-purple-700/50 transition-all duration-700 ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-pink-500" />
-            <span className="text-xs font-semibold text-pink-600 dark:text-pink-300 font-['Nunito']">
-              ✨ Kawaii Collection
-            </span>
-          </div>
+        <div className="max-w-6xl mx-auto px-4 relative">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+            
+            {/* Left Column: Hero Text & Star */}
+            <div className="lg:col-span-7 text-center lg:text-left">
+              {/* Badge */}
+              <div
+                className={`inline-flex items-center gap-2 px-4 py-1.5 mb-5 rounded-full bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 border border-pink-200/50 dark:border-purple-700/50 transition-all duration-700 ${
+                  mounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-pink-500" />
+                <span className="text-xs font-semibold text-pink-600 dark:text-pink-300 font-['Nunito']">
+                  ✨ Kawaii Collection
+                </span>
+              </div>
 
-          {/* Cat face deco */}
-          <div
-            className={`mb-6 text-7xl sm:text-8xl select-none transition-all duration-1000 ${
-              mounted ? 'opacity-100 scale-100 animate-bounce-gentle' : 'opacity-0 scale-50'
-            }`}
-            style={{ transitionDelay: '200ms' }}
-          >
-            🐱
-          </div>
+              {/* Animated Star & Decorative Header */}
+              <div
+                className={`flex items-center justify-center lg:justify-start gap-4 mb-4 transition-all duration-700 ${
+                  mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
+                }`}
+                style={{ transitionDelay: '200ms' }}
+              >
+                <AnimatedStar />
+                <span className="text-3xl select-none animate-bounce-gentle">🐱</span>
+              </div>
 
-          <h1
-            className={`text-4xl sm:text-5xl lg:text-6xl font-extrabold font-['Quicksand'] mb-6 leading-tight transition-all duration-700 ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-            }`}
-            style={{ transitionDelay: '400ms' }}
-          >
-            <span className="text-gradient">
-              {t('hero_title')}
-            </span>
-          </h1>
+              <h1
+                className={`text-4xl sm:text-5xl lg:text-6xl font-extrabold font-['Quicksand'] mb-6 leading-tight transition-all duration-700 ${
+                  mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+                }`}
+                style={{ transitionDelay: '400ms' }}
+              >
+                <span className="text-gradient">
+                  {t('hero_title')}
+                </span>
+              </h1>
 
-          <p
-            className={`text-lg sm:text-xl text-gray-600 dark:text-gray-300 font-['Nunito'] max-w-2xl mx-auto mb-10 leading-relaxed transition-all duration-700 ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-            }`}
-            style={{ transitionDelay: '600ms' }}
-          >
-            {t('hero_subtitle')}
-          </p>
+              <p
+                className={`text-lg sm:text-xl text-gray-600 dark:text-gray-300 font-['Nunito'] max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed transition-all duration-700 ${
+                  mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+                }`}
+                style={{ transitionDelay: '600ms' }}
+              >
+                {t('hero_subtitle')}
+              </p>
 
-          <div
-            className={`transition-all duration-700 ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-            }`}
-            style={{ transitionDelay: '800ms' }}
-          >
-            <Link
-              to="/catalog"
-              className="group inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-pink-400 to-purple-500 hover:from-pink-500 hover:to-purple-600 text-white font-bold rounded-full shadow-lg shadow-pink-300/30 dark:shadow-pink-900/30 hover:shadow-xl hover:shadow-pink-300/40 dark:hover:shadow-pink-900/40 transition-all duration-300 hover:scale-105 font-['Nunito'] text-lg btn-press animate-glow"
+              <div
+                className={`flex flex-wrap items-center justify-center lg:justify-start gap-4 transition-all duration-700 ${
+                  mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+                }`}
+                style={{ transitionDelay: '800ms' }}
+              >
+                <Link
+                  to="/catalog"
+                  className="group inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-pink-400 to-purple-500 hover:from-pink-500 hover:to-purple-600 text-white font-bold rounded-full shadow-lg shadow-pink-300/30 dark:shadow-pink-900/30 hover:shadow-xl hover:shadow-pink-300/40 dark:hover:shadow-pink-900/40 transition-all duration-300 hover:scale-105 font-['Nunito'] text-lg btn-press animate-glow"
+                >
+                  {t('hero_cta')}
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <Link
+                  to="/shipping"
+                  className="inline-flex items-center gap-2 px-6 py-4 rounded-full border-2 border-pink-200 dark:border-purple-700/50 text-gray-700 dark:text-gray-200 font-bold font-['Nunito'] hover:bg-pink-50 dark:hover:bg-purple-900/20 transition-all duration-300"
+                >
+                  <Truck className="w-5 h-5 text-purple-400" />
+                  {t('nav_shipping')}
+                </Link>
+              </div>
+
+              {/* Floating paw prints */}
+              <div
+                className={`mt-10 flex justify-center lg:justify-start gap-3 transition-all duration-700 ${
+                  mounted ? 'opacity-30 dark:opacity-20' : 'opacity-0'
+                }`}
+                style={{ transitionDelay: '1000ms' }}
+              >
+                {['🐾', '🐾', '🐾', '🐾', '🐾'].map((p, i) => (
+                  <span key={i} className="text-2xl animate-float" style={{ animationDelay: `${i * 0.3}s` }}>
+                    {p}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Right Column: Seasonal Feature Card */}
+            <div
+              className={`lg:col-span-5 transition-all duration-1000 ${
+                mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+              }`}
+              style={{ transitionDelay: '400ms' }}
             >
-              {t('hero_cta')}
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
+              <div className="relative mx-auto max-w-md lg:max-w-none group">
+                {/* Glow backdrop */}
+                <div className="absolute -inset-2 bg-gradient-to-r from-pink-400/30 to-purple-500/30 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500" />
 
-          {/* Floating paw prints */}
-          <div
-            className={`mt-14 flex justify-center gap-3 transition-all duration-700 ${
-              mounted ? 'opacity-30 dark:opacity-20' : 'opacity-0'
-            }`}
-            style={{ transitionDelay: '1000ms' }}
-          >
-            {['🐾', '🐾', '🐾', '🐾', '🐾'].map((p, i) => (
-              <span key={i} className="text-2xl animate-float" style={{ animationDelay: `${i * 0.3}s` }}>
-                {p}
-              </span>
-            ))}
+                <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-pink-100/60 dark:border-purple-800/40 min-h-[400px] sm:min-h-[460px] flex flex-col justify-end bg-[#2a2430]">
+                  <img
+                    src={seasonImage}
+                    alt="Decoración de temporada"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  {/* Gradients */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-purple-950/90 via-pink-950/30 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-transparent" />
+
+                  {/* Floating stars on the card */}
+                  <div className="absolute top-6 right-6 animate-float">
+                    <Star className="w-5 h-5 text-yellow-300 fill-yellow-300 opacity-90 drop-shadow-md" />
+                  </div>
+                  <div className="absolute top-16 left-8 animate-float-delayed">
+                    <Star className="w-4 h-4 text-pink-300 fill-pink-300 opacity-80 drop-shadow-md" />
+                  </div>
+                  <div className="absolute top-28 right-12 animate-float">
+                    <Sparkles className="w-4 h-4 text-yellow-200 opacity-70" />
+                  </div>
+
+                  {/* Card footer description */}
+                  <div className="relative z-10 p-6 sm:p-8 text-white">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white mb-3 shadow-sm">
+                      <Sparkles className="w-3.5 h-3.5 text-yellow-300 animate-pulse" />
+                      <span className="text-xs font-bold font-['Nunito'] uppercase tracking-wider text-pink-100">
+                        {seasonTitle}
+                      </span>
+                    </div>
+
+                    <h3 className="text-xl sm:text-2xl font-bold font-['Quicksand'] mb-2 text-white drop-shadow">
+                      {lang === 'es' ? 'Colección de Temporada' : 'Seasonal Collection'}
+                    </h3>
+
+                    <p className="text-sm font-['Nunito'] text-white/90 leading-relaxed drop-shadow">
+                      {seasonDesc}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
+
 
       {/* Stats */}
       <section className="py-4 sm:py-8">

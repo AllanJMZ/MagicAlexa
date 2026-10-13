@@ -15,8 +15,6 @@ import {
   Plus,
   Save,
   ShieldCheck,
-  Sparkles,
-  Star,
   Trash2,
   Truck,
   X,
@@ -49,114 +47,61 @@ export default function Admin() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center py-8 px-4">
-        <div className="w-full max-w-4xl">
-          <div className="bg-white dark:bg-[#2a2430] rounded-3xl shadow-xl border border-pink-100/50 dark:border-purple-800/30 overflow-hidden">
-            <div className="grid grid-cols-1 md:grid-cols-2">
-              {/* Left side — Seasonal image */}
-              <div className="relative hidden md:block min-h-[500px]">
-                <img
-                  src="./season-image.jpg"
-                  alt="Seasonal decoration"
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                {/* Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-purple-900/70 via-pink-900/30 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent to-purple-900/20" />
-                
-                {/* Decorative content on image */}
-                <div className="absolute bottom-6 left-6 right-6 text-white">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="w-4 h-4 text-yellow-300 animate-pulse" />
-                    <span className="text-xs font-bold font-['Nunito'] uppercase tracking-wider text-pink-200">
-                      {t('admin_season_label') || '✨ Temporada Otoño 2026'}
-                    </span>
-                  </div>
-                  <p className="text-sm font-['Nunito'] text-white/80 leading-relaxed">
-                    {t('admin_season_desc') || 'Nuevas piezas de la colección de otoño ya disponibles 🍂'}
-                  </p>
-                </div>
-
-                {/* Floating stars on image */}
-                <div className="absolute top-6 right-6 animate-float">
-                  <Star className="w-5 h-5 text-yellow-300 fill-yellow-300 opacity-70" />
-                </div>
-                <div className="absolute top-16 left-8 animate-float-delayed">
-                  <Star className="w-3 h-3 text-pink-300 fill-pink-300 opacity-50" />
-                </div>
-              </div>
-
-              {/* Right side — Login form */}
-              <div className="p-8 sm:p-10 flex flex-col justify-center">
-                {/* Mobile seasonal image (shown only on small screens) */}
-                <div className="md:hidden relative rounded-2xl overflow-hidden mb-6 h-48">
-                  <img
-                    src="./season-image.jpg"
-                    alt="Seasonal decoration"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-purple-900/60 to-transparent" />
-                  <div className="absolute bottom-3 left-3 right-3">
-                    <span className="text-xs font-bold font-['Nunito'] text-pink-200">
-                      ✨ Temporada Otoño 2026
-                    </span>
-                  </div>
-                </div>
-
-                <div className="text-center mb-8">
-                  <AnimatedStar className="mb-4" />
-                  <h1 className="font-['Quicksand'] font-bold text-2xl text-gradient">
-                    {t('admin_title')}
-                  </h1>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 font-['Nunito'] mt-1">
-                    {t('admin_login_subtitle') || 'Ingresa tus credenciales para continuar'}
-                  </p>
-                </div>
-
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 font-['Nunito'] mb-1">
-                      {t('admin_email')}
-                    </label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#1F1B24] border border-pink-200 dark:border-purple-700/50 focus:border-pink-400 dark:focus:border-pink-500 focus:ring-2 focus:ring-pink-200 dark:focus:ring-pink-800/30 outline-none text-sm font-['Nunito'] text-gray-700 dark:text-gray-200 transition-all"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 font-['Nunito'] mb-1">
-                      {t('admin_password')}
-                    </label>
-                    <input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#1F1B24] border border-pink-200 dark:border-purple-700/50 focus:border-pink-400 dark:focus:border-pink-500 focus:ring-2 focus:ring-pink-200 dark:focus:ring-pink-800/30 outline-none text-sm font-['Nunito'] text-gray-700 dark:text-gray-200 transition-all"
-                      required
-                    />
-                  </div>
-                  {loginError && (
-                    <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30">
-                      <span className="text-red-500 text-sm font-['Nunito']">{loginError}</span>
-                    </div>
-                  )}
-                  <button
-                    type="submit"
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all duration-300 font-['Nunito'] btn-press animate-glow"
-                  >
-                    <LogIn className="w-4 h-4" />
-                    {t('admin_login')}
-                  </button>
-                </form>
-
-                <p className="text-center text-xs text-gray-400 dark:text-gray-500 font-['Nunito'] mt-6">
-                  🔒 {t('admin_secure_note') || 'Conexión segura con Supabase Auth'}
-                </p>
-              </div>
+      <div className="min-h-screen flex items-center justify-center py-12 px-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white/90 dark:bg-[#2a2430]/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-pink-100/60 dark:border-purple-800/40 p-8 sm:p-10">
+            <div className="text-center mb-8">
+              <AnimatedStar className="mb-4" />
+              <h1 className="font-['Quicksand'] font-bold text-2xl text-gradient">
+                {t('admin_title')}
+              </h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 font-['Nunito'] mt-1">
+                {t('admin_login_subtitle') || 'Ingresa tus credenciales para continuar'}
+              </p>
             </div>
+
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 font-['Nunito'] mb-1">
+                  {t('admin_email')}
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#1F1B24] border border-pink-200 dark:border-purple-700/50 focus:border-pink-400 dark:focus:border-pink-500 focus:ring-2 focus:ring-pink-200 dark:focus:ring-pink-800/30 outline-none text-sm font-['Nunito'] text-gray-700 dark:text-gray-200 transition-all"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 font-['Nunito'] mb-1">
+                  {t('admin_password')}
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#1F1B24] border border-pink-200 dark:border-purple-700/50 focus:border-pink-400 dark:focus:border-pink-500 focus:ring-2 focus:ring-pink-200 dark:focus:ring-pink-800/30 outline-none text-sm font-['Nunito'] text-gray-700 dark:text-gray-200 transition-all"
+                  required
+                />
+              </div>
+              {loginError && (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30">
+                  <span className="text-red-500 text-sm font-['Nunito']">{loginError}</span>
+                </div>
+              )}
+              <button
+                type="submit"
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all duration-300 font-['Nunito'] btn-press animate-glow"
+              >
+                <LogIn className="w-4 h-4" />
+                {t('admin_login')}
+              </button>
+            </form>
+
+            <p className="text-center text-xs text-gray-400 dark:text-gray-500 font-['Nunito'] mt-6">
+              🔒 {t('admin_secure_note') || 'Conexión segura con Supabase Auth'}
+            </p>
           </div>
         </div>
       </div>
@@ -167,7 +112,7 @@ export default function Admin() {
     { key: 'products', label: t('admin_products'), icon: <Package className="w-4 h-4" /> },
     { key: 'categories', label: t('admin_categories'), icon: <Layers className="w-4 h-4" /> },
     { key: 'shipping', label: t('admin_shipping'), icon: <Truck className="w-4 h-4" /> },
-    { key: 'banner', label: t('admin_banner'), icon: <MessageSquare className="w-4 h-4" /> },
+    { key: 'banner', label: 'Banner & Temporada', icon: <MessageSquare className="w-4 h-4" /> },
   ]
 
   return (
@@ -625,49 +570,152 @@ function ShippingAdmin() {
   )
 }
 
-/* ─── Banner Settings ────────────────────────────────── */
+/* ─── Banner & Temporada Settings ─────────────────────── */
 function BannerAdmin() {
-  const { t } = useTranslation()
   const { settings, refetch } = useSiteSettings()
+
+  const localSeasonal = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('magic_season_settings') || '{}')
+    } catch {
+      return {}
+    }
+  })()
+
   const [form, setForm] = useState({
     banner_text_es: settings?.banner_text_es || '',
     banner_text_en: settings?.banner_text_en || '',
     banner_active: settings?.banner_active ?? true,
     banner_link: settings?.banner_link || '',
+    season_image_url: settings?.season_image_url || localSeasonal.season_image_url || './season-image.jpg',
+    season_title_es: settings?.season_title_es || localSeasonal.season_title_es || '✨ Temporada Otoño 2026',
+    season_title_en: settings?.season_title_en || localSeasonal.season_title_en || '✨ Autumn Season 2026',
+    season_desc_es: settings?.season_desc_es || localSeasonal.season_desc_es || 'Nuevas piezas de la colección de temporada ya disponibles 🍂',
+    season_desc_en: settings?.season_desc_en || localSeasonal.season_desc_en || 'New seasonal collection pieces now available 🍂',
   })
+  const [uploadingSeason, setUploadingSeason] = useState(false)
   const [saved, setSaved] = useState(false)
 
-  const handleSave = async () => {
-    const { error } = await supabase.from('site_settings').update(form).eq('id', 'main_config')
+  const handleSeasonImageUpload = async (file: File) => {
+    setUploadingSeason(true)
+    const ext = file.name.split('.').pop()
+    const path = `season-${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('product-images').upload(path, file)
     if (error) {
-      console.error('Error saving banner settings:', error)
-      alert(`Error al guardar configuración del banner: ${error.message}`)
-      return
+      console.error('Error uploading seasonal image:', error)
+      alert(`Error al subir imagen de temporada: ${error.message}. Asegúrate de que el bucket 'product-images' exista en Supabase.`)
+    } else {
+      const { data } = supabase.storage.from('product-images').getPublicUrl(path)
+      setForm((prev) => ({ ...prev, season_image_url: data.publicUrl }))
     }
+    setUploadingSeason(false)
+  }
+
+  const handleSave = async () => {
+    // 1. Guardar en localStorage para disponibilidad inmediata
+    const seasonData = {
+      season_image_url: form.season_image_url,
+      season_title_es: form.season_title_es,
+      season_title_en: form.season_title_en,
+      season_desc_es: form.season_desc_es,
+      season_desc_en: form.season_desc_en,
+    }
+    localStorage.setItem('magic_season_settings', JSON.stringify(seasonData))
+
+    // 2. Intentar actualizar en Supabase site_settings
+    let result = await supabase.from('site_settings').update(form).eq('id', 'main_config')
+    if (result.error) {
+      // Fallback: guardar columnas estándar de banner si la tabla aún no tiene las columnas de temporada
+      const basicForm = {
+        banner_text_es: form.banner_text_es,
+        banner_text_en: form.banner_text_en,
+        banner_active: form.banner_active,
+        banner_link: form.banner_link,
+      }
+      result = await supabase.from('site_settings').update(basicForm).eq('id', 'main_config')
+      if (result.error) {
+        console.error('Error saving site_settings:', result.error)
+        alert(`Error al guardar configuración: ${result.error.message}`)
+        return
+      }
+    }
+
     refetch()
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
 
   return (
-    <div className="space-y-4">
-      <h3 className="font-['Quicksand'] font-bold text-lg text-gray-800 dark:text-gray-100">{t('admin_banner')}</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <TextareaField label={t('admin_banner_es')} value={form.banner_text_es} onChange={(v) => setForm({ ...form, banner_text_es: v })} />
-        <TextareaField label={t('admin_banner_en')} value={form.banner_text_en} onChange={(v) => setForm({ ...form, banner_text_en: v })} />
-        <InputField label={t('admin_banner_link')} value={form.banner_link} onChange={(v) => setForm({ ...form, banner_link: v })} />
-        <div className="flex items-center gap-3">
-          <label className="text-sm font-semibold text-gray-600 dark:text-gray-400 font-['Nunito']">{t('admin_banner_active')}</label>
-          <input type="checkbox" checked={form.banner_active} onChange={(e) => setForm({ ...form, banner_active: e.target.checked })}
-            className="w-5 h-5 rounded accent-pink-400" />
+    <div className="space-y-8">
+      {/* Sección 1: Banner Superior */}
+      <div className="space-y-4 p-6 rounded-2xl bg-white dark:bg-[#2a2430] border border-pink-100/50 dark:border-purple-800/30">
+        <h3 className="font-['Quicksand'] font-bold text-lg text-gray-800 dark:text-gray-100 flex items-center gap-2">
+          <span>📢</span> Banner Superior de la Tienda
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <TextareaField label="Texto del Banner (Español)" value={form.banner_text_es} onChange={(v) => setForm({ ...form, banner_text_es: v })} />
+          <TextareaField label="Texto del Banner (Inglés)" value={form.banner_text_en} onChange={(v) => setForm({ ...form, banner_text_en: v })} />
+          <InputField label="Enlace del Banner (Opcional)" value={form.banner_link} onChange={(v) => setForm({ ...form, banner_link: v })} />
+          <div className="flex items-center gap-3 self-end pb-3">
+            <label className="text-sm font-semibold text-gray-600 dark:text-gray-400 font-['Nunito']">Banner Activo</label>
+            <input type="checkbox" checked={form.banner_active} onChange={(e) => setForm({ ...form, banner_active: e.target.checked })}
+              className="w-5 h-5 rounded accent-pink-400" />
+          </div>
         </div>
       </div>
+
+      {/* Sección 2: Temporada e Imagen de Inicio */}
+      <div className="space-y-4 p-6 rounded-2xl bg-white dark:bg-[#2a2430] border border-pink-100/50 dark:border-purple-800/30">
+        <div className="flex items-center justify-between">
+          <h3 className="font-['Quicksand'] font-bold text-lg text-gray-800 dark:text-gray-100 flex items-center gap-2">
+            <span>✨</span> Imagen y Colección de Temporada (Inicio)
+          </h3>
+          <span className="text-xs text-pink-500 font-semibold font-['Nunito']">Se muestra en la portada</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InputField label="Título de Temporada (ES)" value={form.season_title_es} onChange={(v) => setForm({ ...form, season_title_es: v })} />
+          <InputField label="Título de Temporada (EN)" value={form.season_title_en} onChange={(v) => setForm({ ...form, season_title_en: v })} />
+          <TextareaField label="Descripción de Temporada (ES)" value={form.season_desc_es} onChange={(v) => setForm({ ...form, season_desc_es: v })} />
+          <TextareaField label="Descripción de Temporada (EN)" value={form.season_desc_en} onChange={(v) => setForm({ ...form, season_desc_en: v })} />
+        </div>
+
+        <div className="space-y-2 pt-2">
+          <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 font-['Nunito']">
+            Imagen de Temporada
+          </label>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <label className="flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-dashed border-pink-200 dark:border-purple-700/50 text-pink-500 dark:text-pink-300 cursor-pointer hover:bg-pink-50 dark:hover:bg-purple-900/10 transition-all font-['Nunito'] text-sm font-semibold">
+              <ImagePlus className="w-4 h-4" />
+              {uploadingSeason ? 'Subiendo imagen...' : 'Subir Imagen de Temporada'}
+              <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleSeasonImageUpload(e.target.files[0])} />
+            </label>
+            <div className="flex-1 w-full">
+              <input
+                type="text"
+                placeholder="O pega una URL de imagen..."
+                value={form.season_image_url}
+                onChange={(e) => setForm({ ...form, season_image_url: e.target.value })}
+                className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-[#1F1B24] border border-pink-200 dark:border-purple-700/50 text-sm font-['Nunito'] text-gray-700 dark:text-gray-200 outline-none"
+              />
+            </div>
+            {form.season_image_url && (
+              <img
+                src={form.season_image_url}
+                alt="Vista previa temporada"
+                className="w-16 h-16 rounded-xl object-cover border border-pink-200 dark:border-purple-700/50 shadow-sm"
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
       <button onClick={handleSave}
-        className={`flex items-center gap-2 px-6 py-3 font-bold rounded-xl shadow-md transition-all duration-300 font-['Nunito'] ${
+        className={`flex items-center gap-2 px-8 py-3.5 font-bold rounded-xl shadow-md transition-all duration-300 font-['Nunito'] ${
           saved ? 'bg-green-500 text-white' : 'bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white hover:shadow-lg'
         }`}>
         <Save className="w-4 h-4" />
-        {saved ? '✓ Saved!' : t('admin_save')}
+        {saved ? '✓ ¡Cambios Guardados!' : 'Guardar Todo'}
       </button>
     </div>
   )

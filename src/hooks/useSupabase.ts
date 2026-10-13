@@ -40,27 +40,38 @@ const DEMO_PRODUCTS: Product[] = [
   },
 ]
 
-const DEMO_SHIPPING: ShippingMethod[] = [
+export const DEMO_SHIPPING: ShippingMethod[] = [
   {
     id: 'ship-1',
-    title_es: 'Entrega Personal / Punto Medio',
-    title_en: 'Personal Delivery / Meeting Point',
-    description_es: 'Nos ponemos de acuerdo para entregarte tu pedido en un punto céntrico de la ciudad. ¡Sin costo adicional!',
-    description_en: 'We arrange to deliver your order at a central meeting point in the city. No extra cost!',
-    cost_note: 'Gratis',
-    delivery_time: '1-2 días',
-    sort_order: 0,
+    title_es: 'Punto de Encuentro / Entrega Personal',
+    title_en: 'Meeting Point / Personal Delivery',
+    description_es: 'Nos ponemos de acuerdo para entregarte tu pedido en un punto céntrico de la ciudad o estación convenida. ¡Sin costo de envío y entrega directa!',
+    description_en: 'We arrange to meet at a central point or station. Zero shipping fee and direct hand-off!',
+    cost_note: '¡Gratis!',
+    delivery_time: 'Mismo día o 24 hrs',
+    sort_order: 1,
     created_at: '',
   },
   {
     id: 'ship-2',
-    title_es: 'Paquetería Nacional',
-    title_en: 'National Courier',
-    description_es: 'Envío seguro a cualquier parte del país por paquetería con rastreo incluido. Empacamos con mucho amor y protección.',
-    description_en: 'Safe shipping anywhere in the country via courier with tracking included. We pack with lots of love and protection.',
+    title_es: 'Paquetería Nacional con Guía',
+    title_en: 'National Courier with Tracking',
+    description_es: 'Envío seguro a cualquier parte del país por FedEx, Estafeta o DHL. En cuanto sale tu paquete te compartimos tu número de guía por WhatsApp.',
+    description_en: 'Shipping nationwide via FedEx, Estafeta or DHL. Tracking number sent directly to your WhatsApp.',
     cost_note: '$99 - $149 MXN',
-    delivery_time: '3-5 días hábiles',
-    sort_order: 1,
+    delivery_time: '2 a 4 días hábiles',
+    sort_order: 2,
+    created_at: '',
+  },
+  {
+    id: 'ship-3',
+    title_es: 'Empaque Protegido & Garantía',
+    title_en: 'Protected Packing & Guarantee',
+    description_es: 'Empacamos cada pedido con plástico burbuja reforzado, caja resistente y detalles kawaii sorpresa de regalo. Tu pedido llega intacto o te lo reponemos.',
+    description_en: 'Every order is bubble-wrapped in sturdy boxes with surprise kawaii gifts. Guaranteed safe delivery.',
+    cost_note: 'Garantía 100%',
+    delivery_time: 'Protegido',
+    sort_order: 3,
     created_at: '',
   },
 ]
@@ -131,7 +142,11 @@ export function useShippingMethods() {
     } else {
       const { data, error } = await supabase.from('shipping_methods').select('*').order('sort_order')
       if (error) console.error('Error fetching shipping methods from Supabase:', error)
-      setMethods(data || [])
+      if (!data || data.length === 0) {
+        setMethods(DEMO_SHIPPING)
+      } else {
+        setMethods(data)
+      }
     }
     setLoading(false)
   }

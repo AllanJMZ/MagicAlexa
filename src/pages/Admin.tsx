@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useAuth, useCategories, useProducts, useShippingMethods, useSiteSettings } from '../hooks/useSupabase'
+import { DEMO_SHIPPING, useAuth, useCategories, useProducts, useShippingMethods, useSiteSettings } from '../hooks/useSupabase'
 import { supabase } from '../lib/supabase'
 import type { Category, Product, ShippingMethod } from '../types'
 import AnimatedStar from '../components/AnimatedStar'
@@ -506,38 +506,71 @@ function ShippingAdmin() {
     setShowForm(false)
   }
 
+  const handleLoadDefaults = async () => {
+    const defaults = DEMO_SHIPPING.map(({ title_es, title_en, description_es, description_en, cost_note, delivery_time, sort_order }) => ({
+      title_es, title_en, description_es, description_en, cost_note, delivery_time, sort_order
+    }))
+    const { error } = await supabase.from('shipping_methods').insert(defaults)
+    if (error) {
+      console.error('Error inserting default shipping cards:', error)
+      alert(`Error al cargar tarjetas de envío: ${error.message}`)
+    } else {
+      refetch()
+    }
+  }
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-['Quicksand'] font-bold text-lg text-gray-800 dark:text-gray-100">{t('admin_shipping')}</h3>
-        {!showForm && (
-          <button onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-400 to-pink-400 text-white text-sm font-bold rounded-full shadow-md hover:shadow-lg transition-all font-['Nunito']">
-            <Plus className="w-4 h-4" />
-            {t('admin_add')}
-          </button>
-        )}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h3 className="font-['Quicksand'] font-bold text-lg text-gray-800 dark:text-gray-100 flex items-center gap-2">
+            <span>📦</span> Tarjetas de Información de Envíos
+          </h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400 font-['Nunito']">
+            Estas tarjetas se muestran en la página pública de Envíos
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {methods.length === 0 && (
+            <button
+              onClick={handleLoadDefaults}
+              className="flex items-center gap-1.5 px-4 py-2 bg-pink-100 hover:bg-pink-200 dark:bg-pink-900/30 dark:hover:bg-pink-900/50 text-pink-700 dark:text-pink-300 text-xs font-bold rounded-full transition-all font-['Nunito'] border border-pink-200 dark:border-pink-800/40"
+            >
+              <span>✨</span> Cargar 3 Tarjetas Recomendadas
+            </button>
+          )}
+          {!showForm && (
+            <button onClick={() => setShowForm(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-400 to-pink-400 text-white text-sm font-bold rounded-full shadow-md hover:shadow-lg transition-all font-['Nunito']">
+              <Plus className="w-4 h-4" />
+              {t('admin_add')}
+            </button>
+          )}
+        </div>
       </div>
 
       {showForm && (
-        <div className="mb-6 p-4 rounded-xl bg-gray-50 dark:bg-[#1F1B24] border border-pink-100/50 dark:border-purple-800/20 space-y-3">
+        <div className="mb-6 p-5 rounded-2xl bg-white dark:bg-[#2a2430] border border-pink-100/50 dark:border-purple-800/30 space-y-4 shadow-sm">
+          <h4 className="font-bold text-sm text-gray-800 dark:text-gray-100 font-['Quicksand']">
+            {editing ? 'Editar Tarjeta de Envío' : 'Nueva Tarjeta de Envío'}
+          </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <InputField label={t('admin_title_es')} value={form.title_es} onChange={(v) => setForm({ ...form, title_es: v })} />
-            <InputField label={t('admin_title_en')} value={form.title_en} onChange={(v) => setForm({ ...form, title_en: v })} />
-            <TextareaField label={t('admin_desc_es')} value={form.description_es} onChange={(v) => setForm({ ...form, description_es: v })} />
-            <TextareaField label={t('admin_desc_en')} value={form.description_en} onChange={(v) => setForm({ ...form, description_en: v })} />
-            <InputField label={t('admin_cost_note')} value={form.cost_note} onChange={(v) => setForm({ ...form, cost_note: v })} />
-            <InputField label={t('admin_delivery_time')} value={form.delivery_time} onChange={(v) => setForm({ ...form, delivery_time: v })} />
-            <InputField label={t('admin_sort_order')} value={String(form.sort_order)} onChange={(v) => setForm({ ...form, sort_order: parseInt(v) || 0 })} type="number" />
+            <InputField label="Título (Español)" value={form.title_es} onChange={(v) => setForm({ ...form, title_es: v })} />
+            <InputField label="Título (Inglés)" value={form.title_en} onChange={(v) => setForm({ ...form, title_en: v })} />
+            <TextareaField label="Descripción detallada (Español)" value={form.description_es} onChange={(v) => setForm({ ...form, description_es: v })} />
+            <TextareaField label="Descripción detallada (Inglés)" value={form.description_en} onChange={(v) => setForm({ ...form, description_en: v })} />
+            <InputField label="Costo / Tarifa (ej: Gratis, $99 MXN)" value={form.cost_note} onChange={(v) => setForm({ ...form, cost_note: v })} />
+            <InputField label="Tiempo de entrega (ej: 2-4 días)" value={form.delivery_time} onChange={(v) => setForm({ ...form, delivery_time: v })} />
+            <InputField label="Orden de aparición" value={String(form.sort_order)} onChange={(v) => setForm({ ...form, sort_order: parseInt(v) || 0 })} type="number" />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 pt-2">
             <button onClick={handleSave}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-400 to-pink-400 text-white text-sm font-bold rounded-lg shadow-md transition-all font-['Nunito']">
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-400 to-pink-400 text-white text-sm font-bold rounded-xl shadow-md transition-all font-['Nunito']">
               <Save className="w-4 h-4" />
               {t('admin_save')}
             </button>
             <button onClick={reset}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm font-bold rounded-lg transition-all font-['Nunito']">
+              className="flex items-center gap-2 px-5 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm font-bold rounded-xl transition-all font-['Nunito']">
               <X className="w-4 h-4" />
               {t('admin_cancel')}
             </button>
@@ -547,23 +580,37 @@ function ShippingAdmin() {
 
       <div className="space-y-3">
         {methods.map((m) => (
-          <div key={m.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#1F1B24] border border-pink-100/50 dark:border-purple-800/20">
-            <div>
-              <p className="font-['Quicksand'] font-bold text-sm text-gray-800 dark:text-gray-100">{m.title_es}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-['Nunito']">{m.cost_note} — {m.delivery_time}</p>
+          <div key={m.id} className="flex items-start sm:items-center justify-between p-4 rounded-xl bg-white dark:bg-[#2a2430] border border-pink-100/50 dark:border-purple-800/30 gap-4 shadow-sm">
+            <div className="space-y-1">
+              <p className="font-['Quicksand'] font-bold text-base text-gray-800 dark:text-gray-100">{m.title_es}</p>
+              {m.description_es && (
+                <p className="text-xs text-gray-600 dark:text-gray-300 font-['Nunito'] line-clamp-2 max-w-xl">{m.description_es}</p>
+              )}
+              <div className="flex flex-wrap gap-2 pt-1 text-xs text-pink-600 dark:text-pink-400 font-bold font-['Nunito']">
+                {m.cost_note && <span>💰 {m.cost_note}</span>}
+                {m.delivery_time && <span>⏱️ {m.delivery_time}</span>}
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <button onClick={() => startEdit(m)} className="p-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/20 text-purple-500 transition-all">
+            <div className="flex items-center gap-1 shrink-0">
+              <button onClick={() => startEdit(m)} className="p-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/20 text-purple-500 transition-all" title="Editar">
                 <Edit3 className="w-4 h-4" />
               </button>
-              <button onClick={() => handleDelete(m.id)} className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-red-500 transition-all">
+              <button onClick={() => handleDelete(m.id)} className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-red-500 transition-all" title="Eliminar">
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
           </div>
         ))}
         {methods.length === 0 && (
-          <p className="text-center text-gray-400 dark:text-gray-500 font-['Nunito'] py-8">{t('shipping_empty')}</p>
+          <div className="text-center py-8 bg-gray-50/50 dark:bg-[#1F1B24]/50 rounded-2xl border border-dashed border-pink-200 dark:border-purple-800/30">
+            <p className="text-gray-400 dark:text-gray-500 font-['Nunito'] mb-3">Aún no hay métodos de envío guardados en la base de datos.</p>
+            <button
+              onClick={handleLoadDefaults}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-400 to-pink-400 text-white text-xs font-bold rounded-full shadow-md hover:shadow-lg transition-all font-['Nunito']"
+            >
+              <span>✨</span> Cargar las 3 Tarjetas Recomendadas
+            </button>
+          </div>
         )}
       </div>
     </div>

@@ -169,12 +169,9 @@ export default function Catalog() {
               return (
                 <div
                   key={product.id}
-                  className="card-hover group relative bg-white dark:bg-[#2a2430] rounded-2xl overflow-hidden border border-pink-100/50 dark:border-purple-800/30 shadow-sm"
+                  className="card-hover group relative bg-white dark:bg-[#2a2430] rounded-2xl overflow-hidden border border-pink-100/50 dark:border-purple-800/30 shadow-sm animate-fade-in-up"
                   style={{ 
-                    transitionDelay: `${Math.min(i * 80, 600)}ms`,
-                    opacity: gridReveal.revealed ? 1 : 0,
-                    transform: gridReveal.revealed ? 'translateY(0)' : 'translateY(20px)',
-                    transition: `opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${Math.min(i * 80, 600)}ms, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${Math.min(i * 80, 600)}ms`
+                    animationDelay: `${Math.min(i * 80, 400)}ms`
                   }}
                 >
                   {/* Image */}

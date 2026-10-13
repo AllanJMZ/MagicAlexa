@@ -66,7 +66,7 @@ export default function Shipping() {
         ) : (
           <div
             ref={cardsReveal.ref}
-            className={`grid grid-cols-1 md:grid-cols-2 gap-6 reveal ${cardsReveal.revealed ? 'revealed' : ''}`}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in-up"
           >
             {methods.map((method, i) => {
               const color = COLORS[i % COLORS.length]
@@ -79,9 +79,7 @@ export default function Shipping() {
                   key={method.id}
                   className={`card-hover ${color.bg} rounded-2xl p-6 sm:p-8 border ${color.border} group`}
                   style={{ 
-                    opacity: cardsReveal.revealed ? 1 : 0,
-                    transform: cardsReveal.revealed ? 'translateY(0)' : 'translateY(30px)',
-                    transition: `opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${i * 150}ms, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${i * 150}ms`
+                    animationDelay: `${i * 150}ms`
                   }}
                 >
                   <div className={`inline-flex p-3.5 rounded-2xl bg-gradient-to-br ${color.gradient} text-white mb-5 shadow-md group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>

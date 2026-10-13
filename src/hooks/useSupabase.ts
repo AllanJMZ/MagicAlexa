@@ -6,9 +6,14 @@ import type { Category, Product, ShippingMethod, SiteSettings } from '../types'
 const IS_DEMO = import.meta.env.VITE_SUPABASE_URL === 'https://your-project.supabase.co'
   || !import.meta.env.VITE_SUPABASE_URL
 
-const DEMO_CATEGORIES: Category[] = [
-  { id: 'cat-1', name_es: 'Peluches', name_en: 'Plushies', slug: 'peluches', created_at: '' },
-  { id: 'cat-2', name_es: 'Cocina', name_en: 'Kitchen', slug: 'cocina', created_at: '' },
+export const DEMO_CATEGORIES: Category[] = [
+  { id: 'cat-1', name_es: 'Peluches y Coleccionables', name_en: 'Plush & Collectibles', slug: 'peluches-coleccionables', created_at: '' },
+  { id: 'cat-2', name_es: 'Papelería y Oficina', name_en: 'Stationery & Office', slug: 'papeleria-oficina', created_at: '' },
+  { id: 'cat-3', name_es: 'Moda y Accesorios', name_en: 'Apparel & Accessories', slug: 'moda-accesorios', created_at: '' },
+  { id: 'cat-4', name_es: 'Hogar, Cocina y Decoración', name_en: 'Home & Kitchen', slug: 'hogar-cocina', created_at: '' },
+  { id: 'cat-5', name_es: 'Belleza y Cuidado Personal', name_en: 'Beauty & Wellness', slug: 'belleza-cuidado', created_at: '' },
+  { id: 'cat-6', name_es: 'Tecnología y Gadgets', name_en: 'Tech & Accessories', slug: 'tecnologia-gadgets', created_at: '' },
+  { id: 'cat-7', name_es: 'Temporada y Festividades', name_en: 'Seasonal & Holiday', slug: 'temporada-festividades', created_at: '' },
 ]
 
 const DEMO_PRODUCTS: Product[] = [
@@ -102,7 +107,11 @@ export function useCategories() {
     } else {
       const { data, error } = await supabase.from('categories').select('*').order('name_es')
       if (error) console.error('Error fetching categories from Supabase:', error)
-      setCategories(data || [])
+      if (!data || data.length === 0) {
+        setCategories(DEMO_CATEGORIES)
+      } else {
+        setCategories(data)
+      }
     }
     setLoading(false)
   }

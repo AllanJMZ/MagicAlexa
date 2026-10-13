@@ -15,10 +15,28 @@ export interface Product {
   price: number
   category_id: string | null
   image_url: string
+  images?: string[]
   in_stock: boolean
   badge: string | null
   created_at: string
 }
+
+export function getProductImages(product: Product): string[] {
+  if (product.images && product.images.length > 0) {
+    return product.images.filter(Boolean)
+  }
+  if (!product.image_url) return []
+  if (product.image_url.startsWith('[') && product.image_url.endsWith(']')) {
+    try {
+      const parsed = JSON.parse(product.image_url)
+      if (Array.isArray(parsed)) return parsed.filter(Boolean)
+    } catch {
+      // ignore
+    }
+  }
+  return product.image_url.split(',').map(s => s.trim()).filter(Boolean)
+}
+
 
 export interface ShippingMethod {
   id: string

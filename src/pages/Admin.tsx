@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { DEMO_SHIPPING, useAuth, useCategories, useProducts, useShippingMethods, useSiteSettings } from '../hooks/useSupabase'
+import { DEMO_CATEGORIES, DEMO_SHIPPING, useAuth, useCategories, useProducts, useShippingMethods, useSiteSettings } from '../hooks/useSupabase'
 import { supabase } from '../lib/supabase'
 import type { Category, Product, ShippingMethod } from '../types'
+import { getProductImages } from '../types'
 import AnimatedStar from '../components/AnimatedStar'
 import {
   Edit3,
@@ -15,6 +16,7 @@ import {
   Plus,
   Save,
   ShieldCheck,
+  Sparkles,
   Trash2,
   Truck,
   X,
@@ -180,19 +182,45 @@ function ProductsAdmin() {
   }
   const [form, setForm] = useState(emptyProduct)
 
-  const handleImageUpload = async (file: File) => {
+  const currentImages = form.image_url
+    ? form.image_url.split(',').map((s) => s.trim()).filter(Boolean)
+    : []
+
+  const handleMultipleImageUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return
+    const fileArray = Array.from(files)
+    const availableSlots = 3 - currentImages.length
+    if (availableSlots <= 0) {
+      alert('Ya alcanzaste el límite de 3 fotos para este producto.')
+      return
+    }
+    const toUpload = fileArray.slice(0, availableSlots)
     setUploading(true)
-    const ext = file.name.split('.').pop()
-    const path = `${Date.now()}.${ext}`
-    const { error } = await supabase.storage.from('product-images').upload(path, file)
-    if (error) {
-      console.error('Error uploading image to Supabase Storage:', error)
-      alert(`Error al subir imagen: ${error.message}. Asegúrate de que el bucket 'product-images' exista y sea público en Supabase.`)
-    } else {
-      const { data } = supabase.storage.from('product-images').getPublicUrl(path)
-      setForm({ ...form, image_url: data.publicUrl })
+    const uploadedUrls: string[] = []
+
+    for (const file of toUpload) {
+      const ext = file.name.split('.').pop()
+      const path = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${ext}`
+      const { error } = await supabase.storage.from('product-images').upload(path, file)
+      if (error) {
+        console.error('Error uploading image to Supabase Storage:', error)
+        alert(`Error al subir imagen: ${error.message}. Asegúrate de que el bucket 'product-images' exista y sea público en Supabase.`)
+      } else {
+        const { data } = supabase.storage.from('product-images').getPublicUrl(path)
+        uploadedUrls.push(data.publicUrl)
+      }
+    }
+
+    if (uploadedUrls.length > 0) {
+      const updated = [...currentImages, ...uploadedUrls]
+      setForm({ ...form, image_url: updated.join(',') })
     }
     setUploading(false)
+  }
+
+  const handleRemoveImage = (indexToRemove: number) => {
+    const updated = currentImages.filter((_, idx) => idx !== indexToRemove)
+    setForm({ ...form, image_url: updated.join(',') })
   }
 
   const handleSave = async () => {
@@ -286,19 +314,100 @@ function ProductsAdmin() {
             <input type="checkbox" checked={form.in_stock} onChange={(e) => setForm({ ...form, in_stock: e.target.checked })}
               className="w-5 h-5 rounded accent-pink-400" />
           </div>
-          <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 font-['Nunito'] mb-1">{t('admin_image')}</label>
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-dashed border-pink-200 dark:border-purple-700/50 text-pink-500 dark:text-pink-300 cursor-pointer hover:bg-pink-50 dark:hover:bg-purple-900/10 transition-all font-['Nunito'] text-sm font-semibold">
-                <ImagePlus className="w-4 h-4" />
-                {uploading ? 'Uploading...' : 'Upload'}
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0])} />
-              </label>
-              {form.image_url && (
-                <img src={form.image_url} alt="Preview" className="w-16 h-16 rounded-xl object-cover border border-pink-200 dark:border-purple-700/50" />
+
+          {/* Multi-Image Upload (Up to 3 photos) */}
+          <div className="md:col-span-2 space-y-3 bg-pink-50/40 dark:bg-purple-900/10 p-4 rounded-2xl border border-pink-100 dark:border-purple-800/30">
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 font-['Nunito']">
+                  Fotos del producto ({currentImages.length}/3)
+                </label>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-['Nunito']">
+                  Puedes subir hasta 3 fotos. La primera será la foto principal en la tienda.
+                </p>
+              </div>
+              {currentImages.length < 3 && (
+                <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-pink-400 hover:bg-pink-500 text-white cursor-pointer transition-all font-['Nunito'] text-xs font-bold shadow-sm">
+                  <ImagePlus className="w-3.5 h-3.5" />
+                  {uploading ? 'Subiendo...' : 'Subir foto'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    disabled={uploading}
+                    onChange={(e) => {
+                      handleMultipleImageUpload(e.target.files)
+                      e.target.value = ''
+                    }}
+                  />
+                </label>
               )}
             </div>
-            <InputField label="URL" value={form.image_url} onChange={(v) => setForm({ ...form, image_url: v })} />
+
+            {/* 3 Slots */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[0, 1, 2].map((slotIdx) => {
+                const imgUrl = currentImages[slotIdx]
+                const isPrimary = slotIdx === 0
+                return (
+                  <div
+                    key={slotIdx}
+                    className={`relative rounded-2xl border-2 transition-all p-3 flex flex-col items-center justify-center min-h-[140px] bg-white dark:bg-[#1F1B24] ${
+                      imgUrl
+                        ? 'border-pink-300 dark:border-purple-600/50 shadow-sm'
+                        : 'border-dashed border-gray-300 dark:border-gray-700'
+                    }`}
+                  >
+                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold font-['Nunito'] uppercase tracking-wider bg-pink-50 dark:bg-purple-900/40 text-pink-600 dark:text-pink-300 border border-pink-200 dark:border-purple-800">
+                      {isPrimary ? '1: Principal' : `Foto ${slotIdx + 1}`}
+                    </div>
+
+                    {imgUrl ? (
+                      <div className="w-full flex flex-col items-center pt-5">
+                        <img
+                          src={imgUrl}
+                          alt={`Foto ${slotIdx + 1}`}
+                          className="w-20 h-20 object-cover rounded-xl shadow-sm border border-pink-100 dark:border-purple-800"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(slotIdx)}
+                          className="mt-2 text-xs flex items-center gap-1 text-red-500 hover:text-red-700 font-bold font-['Nunito'] transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Eliminar
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center cursor-pointer p-4 text-center group w-full h-full">
+                        <ImagePlus className="w-6 h-6 text-pink-300 group-hover:scale-110 transition-transform mb-1" />
+                        <span className="text-xs font-bold text-gray-400 group-hover:text-pink-500 dark:text-gray-500 font-['Nunito']">
+                          + Agregar foto {slotIdx + 1}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={uploading}
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              handleMultipleImageUpload(e.target.files)
+                            }
+                            e.target.value = ''
+                          }}
+                        />
+                      </label>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+
+            <InputField
+              label="O pega URLs directas (separadas por coma)"
+              value={form.image_url}
+              onChange={(v) => setForm({ ...form, image_url: v })}
+            />
           </div>
         </div>
 
@@ -322,23 +431,34 @@ function ProductsAdmin() {
         </button>
       </div>
       <div className="space-y-3">
-        {products.map((p) => (
-          <div key={p.id} className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 dark:bg-[#1F1B24] border border-pink-100/50 dark:border-purple-800/20">
-            <img src={p.image_url} alt={p.title_es} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="font-['Quicksand'] font-bold text-sm text-gray-800 dark:text-gray-100 truncate">{p.title_es}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-['Nunito']">${p.price.toFixed(2)}</p>
+        {products.map((p) => {
+          const imgs = getProductImages(p)
+          const firstImg = imgs[0] || 'https://images.unsplash.com/photo-1546776310-eef45dd6d63c?w=400'
+          return (
+            <div key={p.id} className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 dark:bg-[#1F1B24] border border-pink-100/50 dark:border-purple-800/20">
+              <div className="relative flex-shrink-0">
+                <img src={firstImg} alt={p.title_es} className="w-14 h-14 rounded-lg object-cover" />
+                {imgs.length > 1 && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-pink-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
+                    {imgs.length} fotos
+                  </span>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-['Quicksand'] font-bold text-sm text-gray-800 dark:text-gray-100 truncate">{p.title_es}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-['Nunito']">${p.price.toFixed(2)}</p>
+              </div>
+              <div className="flex items-center gap-1">
+                <button onClick={() => startEdit(p)} className="p-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/20 text-purple-500 transition-all">
+                  <Edit3 className="w-4 h-4" />
+                </button>
+                <button onClick={() => handleDelete(p.id)} className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-red-500 transition-all">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <button onClick={() => startEdit(p)} className="p-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/20 text-purple-500 transition-all">
-                <Edit3 className="w-4 h-4" />
-              </button>
-              <button onClick={() => handleDelete(p.id)} className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-red-500 transition-all">
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        ))}
+          )
+        })}
         {products.length === 0 && (
           <p className="text-center text-gray-400 dark:text-gray-500 font-['Nunito'] py-8">{t('catalog_empty')}</p>
         )}
@@ -354,13 +474,52 @@ function CategoriesAdmin() {
   const [editing, setEditing] = useState<Category | null>(null)
   const [form, setForm] = useState({ name_es: '', name_en: '', slug: '' })
   const [showForm, setShowForm] = useState(false)
+  const [loadingOfficial, setLoadingOfficial] = useState(false)
+
+  const handleLoadOfficialCategories = async () => {
+    if (!confirm('¿Deseas registrar las 7 categorías oficiales en la base de datos de Supabase?')) return
+    setLoadingOfficial(true)
+    let added = 0
+    for (const cat of DEMO_CATEGORIES) {
+      const exists = categories.some((c) => c.slug === cat.slug || c.name_es.toLowerCase() === cat.name_es.toLowerCase())
+      if (!exists) {
+        const { error } = await supabase.from('categories').insert({
+          name_es: cat.name_es,
+          name_en: cat.name_en,
+          slug: cat.slug,
+        })
+        if (!error) added++
+      }
+    }
+    setLoadingOfficial(false)
+    refetch()
+    alert(added > 0 ? `¡Se agregaron ${added} categorías oficiales con éxito!` : 'Todas las 7 categorías oficiales ya están registradas.')
+  }
 
   const handleSave = async () => {
+    if (!form.name_es.trim()) {
+      alert('Por favor ingresa al menos el nombre en español de la categoría.')
+      return
+    }
+
+    const slugValue = (form.slug.trim() || form.name_es)
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
+
+    const payload = {
+      name_es: form.name_es.trim(),
+      name_en: form.name_en.trim() || form.name_es.trim(),
+      slug: slugValue,
+    }
+
     let result
     if (editing) {
-      result = await supabase.from('categories').update(form).eq('id', editing.id)
+      result = await supabase.from('categories').update(payload).eq('id', editing.id)
     } else {
-      result = await supabase.from('categories').insert(form)
+      result = await supabase.from('categories').insert(payload)
     }
     if (result.error) {
       console.error('Error saving category:', result.error)
@@ -396,15 +555,30 @@ function CategoriesAdmin() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-['Quicksand'] font-bold text-lg text-gray-800 dark:text-gray-100">{t('admin_categories')}</h3>
-        {!showForm && (
-          <button onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-400 to-pink-400 text-white text-sm font-bold rounded-full shadow-md hover:shadow-lg transition-all font-['Nunito']">
-            <Plus className="w-4 h-4" />
-            {t('admin_add')}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <div>
+          <h3 className="font-['Quicksand'] font-bold text-lg text-gray-800 dark:text-gray-100">{t('admin_categories')}</h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400 font-['Nunito']">
+            Organiza tus productos en colecciones temáticas
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={handleLoadOfficialCategories}
+            disabled={loadingOfficial}
+            className="flex items-center gap-1.5 px-3 py-2 bg-pink-100 dark:bg-purple-900/30 hover:bg-pink-200 dark:hover:bg-purple-900/50 text-pink-600 dark:text-pink-300 text-xs font-bold rounded-full border border-pink-200 dark:border-purple-700/50 transition-all font-['Nunito'] shadow-sm"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-pink-500" />
+            {loadingOfficial ? 'Cargando...' : 'Cargar 7 Categorías Oficiales'}
           </button>
-        )}
+          {!showForm && (
+            <button onClick={() => setShowForm(true)}
+              className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-purple-400 to-pink-400 text-white text-xs font-bold rounded-full shadow-md hover:shadow-lg transition-all font-['Nunito']">
+              <Plus className="w-4 h-4" />
+              {t('admin_add')}
+            </button>
+          )}
+        </div>
       </div>
 
       {showForm && (

@@ -84,7 +84,8 @@ export function useCategories() {
     if (IS_DEMO) {
       setCategories(DEMO_CATEGORIES)
     } else {
-      const { data } = await supabase.from('categories').select('*').order('name_es')
+      const { data, error } = await supabase.from('categories').select('*').order('name_es')
+      if (error) console.error('Error fetching categories from Supabase:', error)
       setCategories(data || [])
     }
     setLoading(false)
@@ -103,7 +104,8 @@ export function useProducts() {
     if (IS_DEMO) {
       setProducts(DEMO_PRODUCTS)
     } else {
-      const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false })
+      const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false })
+      if (error) console.error('Error fetching products from Supabase:', error)
       setProducts(data || [])
     }
     setLoading(false)
@@ -122,7 +124,8 @@ export function useShippingMethods() {
     if (IS_DEMO) {
       setMethods(DEMO_SHIPPING)
     } else {
-      const { data } = await supabase.from('shipping_methods').select('*').order('sort_order')
+      const { data, error } = await supabase.from('shipping_methods').select('*').order('sort_order')
+      if (error) console.error('Error fetching shipping methods from Supabase:', error)
       setMethods(data || [])
     }
     setLoading(false)
@@ -141,7 +144,8 @@ export function useSiteSettings() {
     if (IS_DEMO) {
       setSettings(DEMO_SETTINGS)
     } else {
-      const { data } = await supabase.from('site_settings').select('*').eq('id', 'main_config').single()
+      const { data, error } = await supabase.from('site_settings').select('*').eq('id', 'main_config').maybeSingle()
+      if (error) console.error('Error fetching site_settings from Supabase:', error)
       setSettings(data)
     }
     setLoading(false)

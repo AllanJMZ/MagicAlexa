@@ -240,7 +240,10 @@ function ProductsAdmin() {
     const ext = file.name.split('.').pop()
     const path = `${Date.now()}.${ext}`
     const { error } = await supabase.storage.from('product-images').upload(path, file)
-    if (!error) {
+    if (error) {
+      console.error('Error uploading image to Supabase Storage:', error)
+      alert(`Error al subir imagen: ${error.message}. Asegúrate de que el bucket 'product-images' exista y sea público en Supabase.`)
+    } else {
       const { data } = supabase.storage.from('product-images').getPublicUrl(path)
       setForm({ ...form, image_url: data.publicUrl })
     }
@@ -248,10 +251,16 @@ function ProductsAdmin() {
   }
 
   const handleSave = async () => {
+    let result
     if (editing) {
-      await supabase.from('products').update(form).eq('id', editing.id)
+      result = await supabase.from('products').update(form).eq('id', editing.id)
     } else {
-      await supabase.from('products').insert(form)
+      result = await supabase.from('products').insert(form)
+    }
+    if (result.error) {
+      console.error('Error saving product:', result.error)
+      alert(`Error al guardar producto: ${result.error.message}`)
+      return
     }
     setEditing(null)
     setCreating(false)
@@ -261,7 +270,11 @@ function ProductsAdmin() {
 
   const handleDelete = async (id: string) => {
     if (confirm(t('admin_confirm_delete'))) {
-      await supabase.from('products').delete().eq('id', id)
+      const { error } = await supabase.from('products').delete().eq('id', id)
+      if (error) {
+        console.error('Error deleting product:', error)
+        alert(`Error al eliminar: ${error.message}`)
+      }
       refetch()
     }
   }
@@ -398,10 +411,16 @@ function CategoriesAdmin() {
   const [showForm, setShowForm] = useState(false)
 
   const handleSave = async () => {
+    let result
     if (editing) {
-      await supabase.from('categories').update(form).eq('id', editing.id)
+      result = await supabase.from('categories').update(form).eq('id', editing.id)
     } else {
-      await supabase.from('categories').insert(form)
+      result = await supabase.from('categories').insert(form)
+    }
+    if (result.error) {
+      console.error('Error saving category:', result.error)
+      alert(`Error al guardar categoría: ${result.error.message}`)
+      return
     }
     reset()
     refetch()
@@ -409,7 +428,11 @@ function CategoriesAdmin() {
 
   const handleDelete = async (id: string) => {
     if (confirm(t('admin_confirm_delete'))) {
-      await supabase.from('categories').delete().eq('id', id)
+      const { error } = await supabase.from('categories').delete().eq('id', id)
+      if (error) {
+        console.error('Error deleting category:', error)
+        alert(`Error al eliminar categoría: ${error.message}`)
+      }
       refetch()
     }
   }
@@ -496,10 +519,16 @@ function ShippingAdmin() {
   const [form, setForm] = useState(emptyForm)
 
   const handleSave = async () => {
+    let result
     if (editing) {
-      await supabase.from('shipping_methods').update(form).eq('id', editing.id)
+      result = await supabase.from('shipping_methods').update(form).eq('id', editing.id)
     } else {
-      await supabase.from('shipping_methods').insert(form)
+      result = await supabase.from('shipping_methods').insert(form)
+    }
+    if (result.error) {
+      console.error('Error saving shipping method:', result.error)
+      alert(`Error al guardar método de envío: ${result.error.message}`)
+      return
     }
     reset()
     refetch()
@@ -507,7 +536,11 @@ function ShippingAdmin() {
 
   const handleDelete = async (id: string) => {
     if (confirm(t('admin_confirm_delete'))) {
-      await supabase.from('shipping_methods').delete().eq('id', id)
+      const { error } = await supabase.from('shipping_methods').delete().eq('id', id)
+      if (error) {
+        console.error('Error deleting shipping method:', error)
+        alert(`Error al eliminar método de envío: ${error.message}`)
+      }
       refetch()
     }
   }
@@ -605,7 +638,12 @@ function BannerAdmin() {
   const [saved, setSaved] = useState(false)
 
   const handleSave = async () => {
-    await supabase.from('site_settings').update(form).eq('id', 'main_config')
+    const { error } = await supabase.from('site_settings').update(form).eq('id', 'main_config')
+    if (error) {
+      console.error('Error saving banner settings:', error)
+      alert(`Error al guardar configuración del banner: ${error.message}`)
+      return
+    }
     refetch()
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)

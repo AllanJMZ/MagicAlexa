@@ -1072,7 +1072,7 @@ function ShippingAdmin() {
 /* ─── Banner, Fondo & Temporada Settings ─────────────────────── */
 function BannerAdmin() {
   const { settings, refetch } = useSiteSettings()
-  const bgConfig = useSiteBackground()
+  const { bgUrl, saveBgUrl } = useSiteBackground()
 
   const localSeasonal = (() => {
     try {
@@ -1094,13 +1094,7 @@ function BannerAdmin() {
     season_desc_en: settings?.season_desc_en || localSeasonal.season_desc_en || 'New seasonal collection pieces now available 🍂',
   })
 
-  const [bgForm, setBgForm] = useState({
-    bgUrl: bgConfig.bgUrl,
-    bgRepeat: bgConfig.bgRepeat,
-    bgOpacity: bgConfig.bgOpacity,
-    bgActive: bgConfig.bgActive,
-  })
-
+  const [currentBgUrl, setCurrentBgUrl] = useState(bgUrl)
   const [uploadingSeason, setUploadingSeason] = useState(false)
   const [uploadingBg, setUploadingBg] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -1130,14 +1124,14 @@ function BannerAdmin() {
       alert(`Error al subir imagen de fondo: ${error.message}. Asegúrate de que el bucket 'product-images' exista en Supabase.`)
     } else {
       const { data } = supabase.storage.from('product-images').getPublicUrl(path)
-      setBgForm((prev) => ({ ...prev, bgUrl: data.publicUrl, bgActive: true }))
+      setCurrentBgUrl(data.publicUrl)
     }
     setUploadingBg(false)
   }
 
   const handleSave = async () => {
-    // 1. Guardar fondo de pantalla en el estado/hook y localStorage
-    bgConfig.saveConfig(bgForm)
+    // 1. Guardar foto de fondo optimizada directamente
+    saveBgUrl(currentBgUrl)
 
     // 2. Guardar temporada en localStorage para disponibilidad inmediata
     const seasonData = {
@@ -1152,13 +1146,9 @@ function BannerAdmin() {
     // 3. Intentar actualizar en Supabase site_settings
     let result = await supabase.from('site_settings').update({
       ...form,
-      bg_image_url: bgForm.bgUrl,
-      bg_pattern_repeat: bgForm.bgRepeat,
-      bg_opacity: bgForm.bgOpacity,
-      bg_active: bgForm.bgActive,
+      bg_image_url: currentBgUrl,
     }).eq('id', 'main_config')
     if (result.error) {
-      // Fallback: guardar columnas estándar de banner si la tabla aún no tiene las columnas extendidas
       const basicForm = {
         banner_text_es: form.banner_text_es,
         banner_text_en: form.banner_text_en,
@@ -1178,145 +1168,84 @@ function BannerAdmin() {
 
   return (
     <div className="space-y-8">
-      {/* Sección 1: Fondo de Pantalla de la Tienda (Wallpaper) */}
+      {/* Sección 1: Foto de Fondo de la Tienda */}
       <div className="space-y-4 p-6 rounded-2xl bg-white dark:bg-[#2a2430] border border-pink-100/50 dark:border-purple-800/30">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <h3 className="font-['Quicksand'] font-bold text-lg text-gray-800 dark:text-gray-100 flex items-center gap-2">
-            <span>🖼️</span> Fondo de Pantalla de la Tienda (Wallpaper)
+            <span>🖼️</span> Foto de Fondo de la Tienda
           </h3>
-          <div className="flex items-center gap-2">
-            <label className="text-xs font-semibold text-gray-600 dark:text-gray-300 font-['Nunito']">
-              Activar Fondo:
-            </label>
-            <input
-              type="checkbox"
-              checked={bgForm.bgActive}
-              onChange={(e) => setBgForm({ ...bgForm, bgActive: e.target.checked })}
-              className="w-5 h-5 rounded accent-pink-400 cursor-pointer"
-            />
-          </div>
+          {currentBgUrl && (
+            <button
+              type="button"
+              onClick={() => setCurrentBgUrl('')}
+              className="text-xs font-bold text-red-500 hover:text-red-600 font-['Nunito'] flex items-center gap-1"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Quitar fondo (dejar limpio)
+            </button>
+          )}
         </div>
 
         <p className="text-xs text-gray-500 dark:text-gray-400 font-['Nunito']">
-          Personaliza la imagen que se muestra de fondo en toda la tienda. Puedes subir tu propia imagen, usar un enlace o elegir uno de los temas predeterminados.
+          Sube la foto que quieras para el fondo de la tienda o escribe la URL de la imagen. La foto se aplicará directamente de forma optimizada y ultra rápida.
         </p>
 
-        {/* Presets Rápidos */}
-        <div className="space-y-2">
-          <label className="block text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-300 font-['Nunito']">
-            Temas y Fondos Rápidos:
-          </label>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setBgForm({ bgUrl: '/bg-halloween.jpg', bgRepeat: true, bgOpacity: 0.5, bgActive: true })}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-bold font-['Nunito'] bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-200 border border-purple-300 dark:border-purple-700 hover:bg-purple-200 transition-all flex items-center gap-1.5 shadow-xs"
-            >
-              🦇 Murciélagos Halloween (Patrón)
-            </button>
-            <button
-              type="button"
-              onClick={() => setBgForm({ bgUrl: 'https://images.unsplash.com/photo-1538370965046-79c0d6907d47?w=1200', bgRepeat: false, bgOpacity: 0.25, bgActive: true })}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-bold font-['Nunito'] bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-200 border border-pink-300 dark:border-pink-700 hover:bg-pink-200 transition-all flex items-center gap-1.5 shadow-xs"
-            >
-              ✨ Galaxia Mágica
-            </button>
-            <button
-              type="button"
-              onClick={() => setBgForm({ bgUrl: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=1200', bgRepeat: true, bgOpacity: 0.2, bgActive: true })}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-bold font-['Nunito'] bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-700 hover:bg-yellow-100 transition-all flex items-center gap-1.5 shadow-xs"
-            >
-              🌸 Rosa Kawaii
-            </button>
-            <button
-              type="button"
-              onClick={() => setBgForm({ ...bgForm, bgActive: false })}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-bold font-['Nunito'] bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-200 transition-all flex items-center gap-1.5 shadow-xs"
-            >
-              🚫 Sin Fondo (Limpio)
-            </button>
-          </div>
+        {/* Acciones rápidas */}
+        <div className="flex flex-wrap gap-2 pt-1">
+          <button
+            type="button"
+            onClick={() => setCurrentBgUrl('/bg-halloween.jpg')}
+            className="px-3.5 py-1.5 rounded-xl text-xs font-bold font-['Nunito'] bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-200 border border-purple-300 dark:border-purple-700 hover:bg-purple-200 transition-all flex items-center gap-1.5 shadow-xs"
+          >
+            🦇 Murciélagos Halloween
+          </button>
+          <button
+            type="button"
+            onClick={() => setCurrentBgUrl('')}
+            className="px-3.5 py-1.5 rounded-xl text-xs font-bold font-['Nunito'] bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-200 transition-all shadow-xs"
+          >
+            🚫 Sin fondo
+          </button>
         </div>
 
-        {/* Carga y URL */}
+        {/* Carga y URL directa */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
           <div>
             <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 font-['Nunito'] mb-1">
-              Subir Imagen desde tu Equipo
+              Subir Foto desde tu Equipo
             </label>
             <label className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl border-2 border-dashed border-pink-200 dark:border-purple-700/50 text-pink-500 dark:text-pink-300 cursor-pointer hover:bg-pink-50 dark:hover:bg-purple-900/10 transition-all font-['Nunito'] text-sm font-semibold">
               <ImagePlus className="w-4 h-4" />
-              {uploadingBg ? 'Subiendo fondo...' : 'Seleccionar Archivo de Imagen'}
+              {uploadingBg ? 'Subiendo foto...' : 'Seleccionar Foto'}
               <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleBgImageUpload(e.target.files[0])} />
             </label>
           </div>
 
           <div>
             <InputField
-              label="O pega URL de la imagen de fondo"
-              value={bgForm.bgUrl}
-              onChange={(v) => setBgForm({ ...bgForm, bgUrl: v, bgActive: true })}
+              label="O escribe/pega la URL de la foto"
+              value={currentBgUrl}
+              onChange={(v) => setCurrentBgUrl(v)}
             />
           </div>
         </div>
 
-        {/* Opciones de Estilo del Fondo */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-gray-50 dark:bg-[#1F1B24] border border-pink-100/50 dark:border-purple-800/30">
-          <div>
-            <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 font-['Nunito'] mb-2 flex items-center justify-between">
-              <span>Opacidad / Intensidad del Fondo</span>
-              <span className="text-purple-600 dark:text-purple-400 font-bold">{Math.round(bgForm.bgOpacity * 100)}%</span>
-            </label>
-            <input
-              type="range"
-              min="0.05"
-              max="1"
-              step="0.05"
-              value={bgForm.bgOpacity}
-              onChange={(e) => setBgForm({ ...bgForm, bgOpacity: parseFloat(e.target.value) })}
-              className="w-full accent-pink-500 cursor-pointer"
-            />
-            <p className="text-[11px] text-gray-400 dark:text-gray-500 font-['Nunito'] mt-1">
-              Recomendado: 30% a 60% para que el contenido siga siendo muy legible.
-            </p>
-          </div>
-
-          <div className="flex flex-col justify-center">
-            <label className="flex items-center gap-2 cursor-pointer font-['Nunito'] text-sm font-semibold text-gray-700 dark:text-gray-300">
-              <input
-                type="checkbox"
-                checked={bgForm.bgRepeat}
-                onChange={(e) => setBgForm({ ...bgForm, bgRepeat: e.target.checked })}
-                className="w-4 h-4 rounded accent-pink-400"
-              />
-              <span>Repetir como mosaico (Pattern / Repetición continua)</span>
-            </label>
-            <p className="text-[11px] text-gray-400 dark:text-gray-500 font-['Nunito'] mt-1 pl-6">
-              Ideal para texturas repetitivas como el patrón de murciélagos. Si se desactiva, la imagen cubrirá toda la pantalla.
-            </p>
-          </div>
-        </div>
-
-        {/* Vista previa en miniatura */}
-        {bgForm.bgUrl && (
+        {/* Vista previa */}
+        {currentBgUrl ? (
           <div className="pt-2 flex items-center gap-3">
-            <div
-              className="w-24 h-16 rounded-xl border border-pink-200 dark:border-purple-700 shadow-sm overflow-hidden"
-              style={{
-                backgroundImage: `url(${bgForm.bgUrl})`,
-                backgroundRepeat: bgForm.bgRepeat ? 'repeat' : 'no-repeat',
-                backgroundSize: bgForm.bgRepeat ? '60px auto' : 'cover',
-                backgroundPosition: 'center',
-                opacity: bgForm.bgOpacity,
-              }}
+            <img
+              src={currentBgUrl}
+              alt="Vista previa del fondo"
+              className="w-20 h-16 rounded-xl object-cover border border-pink-200 dark:border-purple-700 shadow-sm"
             />
             <div className="text-xs font-['Nunito'] text-gray-600 dark:text-gray-400">
-              <p className="font-bold text-gray-700 dark:text-gray-300">Vista previa del fondo</p>
-              <p className="text-[11px] text-gray-500">
-                {bgForm.bgActive ? '✓ Fondo activo en toda la tienda' : '⚠️ Fondo desactivado'}
-              </p>
+              <p className="font-bold text-gray-700 dark:text-gray-300">Foto seleccionada</p>
+              <p className="text-[11px] text-green-600 dark:text-green-400 font-semibold">✓ Lista para mostrar en la tienda</p>
             </div>
           </div>
+        ) : (
+          <p className="text-xs text-gray-400 dark:text-gray-500 font-['Nunito'] italic pt-1">
+            Sin foto de fondo activa (se mostrará el color estándar de la tienda).
+          </p>
         )}
       </div>
 

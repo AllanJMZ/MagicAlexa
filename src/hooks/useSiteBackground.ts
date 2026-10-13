@@ -1,41 +1,36 @@
 import { useEffect, useState } from 'react'
 
-export interface SiteBackgroundConfig {
-  bgUrl: string
-  bgRepeat: boolean
-  bgOpacity: number
-  bgActive: boolean
-}
+const STORAGE_KEY = 'magic_site_background_url'
+const EVENT_NAME = 'magic_background_url_updated'
 
-const STORAGE_KEY = 'magic_site_background'
-const EVENT_NAME = 'magic_background_updated'
-
-export const DEFAULT_BACKGROUND: SiteBackgroundConfig = {
-  bgUrl: '/bg-halloween.jpg',
-  bgRepeat: true,
-  bgOpacity: 0.5,
-  bgActive: true,
-}
+export const DEFAULT_BACKGROUND_URL = '/bg-halloween.jpg'
 
 export function useSiteBackground() {
-  const [config, setConfigState] = useState<SiteBackgroundConfig>(() => {
+  const [bgUrl, setBgUrlState] = useState<string>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        return { ...DEFAULT_BACKGROUND, ...JSON.parse(saved) }
+      if (saved !== null) {
+        return saved
+      }
+      // Migration from previous key if existing
+      const old = localStorage.getItem('magic_site_background')
+      if (old) {
+        const parsed = JSON.parse(old)
+        if (parsed.bgActive === false) return ''
+        if (parsed.bgUrl) return parsed.bgUrl
       }
     } catch {
       // fallback
     }
-    return DEFAULT_BACKGROUND
+    return DEFAULT_BACKGROUND_URL
   })
 
   useEffect(() => {
     const handleUpdate = () => {
       try {
         const saved = localStorage.getItem(STORAGE_KEY)
-        if (saved) {
-          setConfigState({ ...DEFAULT_BACKGROUND, ...JSON.parse(saved) })
+        if (saved !== null) {
+          setBgUrlState(saved)
         }
       } catch {
         // ignore
@@ -50,11 +45,10 @@ export function useSiteBackground() {
     }
   }, [])
 
-  const saveConfig = (newConfig: Partial<SiteBackgroundConfig>) => {
-    const updated = { ...config, ...newConfig }
-    setConfigState(updated)
+  const saveBgUrl = (url: string) => {
+    setBgUrlState(url)
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+      localStorage.setItem(STORAGE_KEY, url)
       window.dispatchEvent(new Event(EVENT_NAME))
     } catch {
       // ignore
@@ -62,7 +56,8 @@ export function useSiteBackground() {
   }
 
   return {
-    ...config,
-    saveConfig,
+    bgUrl,
+    saveBgUrl,
+    bgActive: Boolean(bgUrl),
   }
 }

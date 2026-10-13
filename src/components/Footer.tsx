@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Heart } from 'lucide-react'
-import { FacebookIcon, InstagramIcon } from './SocialIcons'
+import { FacebookIcon, InstagramIcon, WhatsAppIcon, SOCIAL_LINKS } from './SocialIcons'
 import { useReveal } from '../hooks/useAnimations'
 
 export default function Footer() {
@@ -27,22 +27,34 @@ export default function Footer() {
           {/* Social */}
           <div className="flex items-center gap-3">
             <a
-              href="https://facebook.com"
+              href={SOCIAL_LINKS.facebook}
               target="_blank"
               rel="noopener noreferrer"
               className="p-2.5 rounded-full bg-white dark:bg-[#2a2430] shadow-sm border border-pink-100 dark:border-purple-800/50 text-gray-500 dark:text-gray-400 hover:text-blue-500 hover:border-blue-200 dark:hover:border-blue-800/50 hover:shadow-md hover:scale-110 transition-all duration-300"
               aria-label="Facebook"
+              title="Facebook @MagicCalexaBolishop"
             >
               <FacebookIcon className="w-4 h-4" />
             </a>
             <a
-              href="https://instagram.com"
+              href={SOCIAL_LINKS.instagram}
               target="_blank"
               rel="noopener noreferrer"
               className="p-2.5 rounded-full bg-white dark:bg-[#2a2430] shadow-sm border border-pink-100 dark:border-purple-800/50 text-gray-500 dark:text-gray-400 hover:text-pink-500 hover:border-pink-200 dark:hover:border-pink-800/50 hover:shadow-md hover:scale-110 transition-all duration-300"
               aria-label="Instagram"
+              title="Instagram @magiccalexa_bolishop"
             >
               <InstagramIcon className="w-4 h-4" />
+            </a>
+            <a
+              href={SOCIAL_LINKS.whatsappGroup}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2.5 rounded-full bg-white dark:bg-[#2a2430] shadow-sm border border-pink-100 dark:border-purple-800/50 text-gray-500 dark:text-gray-400 hover:text-green-500 hover:border-green-200 dark:hover:border-green-800/50 hover:shadow-md hover:scale-110 transition-all duration-300"
+              aria-label="Comunidad WhatsApp"
+              title="Comunidad en WhatsApp"
+            >
+              <WhatsAppIcon className="w-4 h-4" />
             </a>
           </div>
 

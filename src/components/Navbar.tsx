@@ -11,7 +11,7 @@ import {
   Sun,
   X,
 } from 'lucide-react'
-import { FacebookIcon, InstagramIcon } from './SocialIcons'
+import { FacebookIcon, InstagramIcon, WhatsAppIcon, SOCIAL_LINKS } from './SocialIcons'
 
 export default function Navbar() {
   const { t, i18n } = useTranslation()
@@ -97,22 +97,34 @@ export default function Navbar() {
           <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Social */}
             <a
-              href="https://facebook.com"
+              href={SOCIAL_LINKS.facebook}
               target="_blank"
               rel="noopener noreferrer"
               className="hidden sm:flex p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-300 hover:scale-110"
               aria-label="Facebook"
+              title="Facebook @MagicCalexaBolishop"
             >
               <FacebookIcon className="w-4 h-4" />
             </a>
             <a
-              href="https://instagram.com"
+              href={SOCIAL_LINKS.instagram}
               target="_blank"
               rel="noopener noreferrer"
               className="hidden sm:flex p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-pink-600 hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-all duration-300 hover:scale-110"
               aria-label="Instagram"
+              title="Instagram @magiccalexa_bolishop"
             >
               <InstagramIcon className="w-4 h-4" />
+            </a>
+            <a
+              href={SOCIAL_LINKS.whatsappGroup}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:flex p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-300 hover:scale-110"
+              aria-label="Comunidad WhatsApp"
+              title="Comunidad en WhatsApp"
+            >
+              <WhatsAppIcon className="w-4 h-4" />
             </a>
 
             {/* Theme toggle */}
@@ -188,22 +200,34 @@ export default function Navbar() {
           {/* Mobile social links */}
           <div className="flex items-center gap-3 px-4 pt-2 sm:hidden">
             <a
-              href="https://facebook.com"
+              href={SOCIAL_LINKS.facebook}
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-300"
               aria-label="Facebook"
+              title="Facebook"
             >
               <FacebookIcon className="w-4 h-4" />
             </a>
             <a
-              href="https://instagram.com"
+              href={SOCIAL_LINKS.instagram}
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-pink-600 hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-all duration-300"
               aria-label="Instagram"
+              title="Instagram"
             >
               <InstagramIcon className="w-4 h-4" />
+            </a>
+            <a
+              href={SOCIAL_LINKS.whatsappGroup}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-300"
+              aria-label="Comunidad WhatsApp"
+              title="Comunidad en WhatsApp"
+            >
+              <WhatsAppIcon className="w-4 h-4" />
             </a>
           </div>
         </div>

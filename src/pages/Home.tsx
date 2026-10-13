@@ -9,6 +9,7 @@ import type { Product } from '../types'
 import AnimatedStar from '../components/AnimatedStar'
 import ProductCard from '../components/ProductCard'
 import ProductDetailModal from '../components/ProductDetailModal'
+import { FacebookIcon, InstagramIcon, WhatsAppIcon, SOCIAL_LINKS } from '../components/SocialIcons'
 
 export default function Home() {
   const { t, i18n } = useTranslation()
@@ -436,6 +437,53 @@ export default function Home() {
                 {t('nav_shipping')}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Redes Sociales y Comunidad Section */}
+      <section className="pb-16 sm:pb-20">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-pink-50/90 via-purple-50/70 to-pink-50/90 dark:from-[#251d2e] dark:via-[#1e1924] dark:to-[#221a28] border border-pink-200/80 dark:border-purple-800/40 text-center shadow-sm">
+            <span className="text-3xl select-none mb-2 inline-block">💖</span>
+            <h2 className="font-['Quicksand'] font-bold text-xl sm:text-2xl text-gray-800 dark:text-gray-100 mb-2">
+              {lang === 'es' ? '¡Síguenos y Únete a la Comunidad!' : 'Follow Us & Join the Community!'}
+            </h2>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-['Nunito'] max-w-md mx-auto mb-6">
+              {lang === 'es'
+                ? 'Conoce lanzamientos antes que nadie, dinámicas especiales y únete a nuestro grupo oficial en WhatsApp ✨'
+                : 'Discover releases before anyone else, special giveaways and join our official WhatsApp group ✨'}
+            </p>
+
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <a
+                href={SOCIAL_LINKS.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold text-xs sm:text-sm font-['Nunito'] shadow-md hover:shadow-lg transition-all hover:scale-105"
+              >
+                <InstagramIcon className="w-4 h-4" />
+                Instagram
+              </a>
+              <a
+                href={SOCIAL_LINKS.whatsappGroup}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold text-xs sm:text-sm font-['Nunito'] shadow-md hover:shadow-lg transition-all hover:scale-105"
+              >
+                <WhatsAppIcon className="w-4 h-4" />
+                {lang === 'es' ? 'Grupo de WhatsApp' : 'WhatsApp Community'}
+              </a>
+              <a
+                href={SOCIAL_LINKS.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs sm:text-sm font-['Nunito'] shadow-md hover:shadow-lg transition-all hover:scale-105"
+              >
+                <FacebookIcon className="w-4 h-4" />
+                Facebook
+              </a>
             </div>
           </div>
         </div>

@@ -119,12 +119,12 @@ export default function Home() {
             <div className="lg:col-span-7 text-center lg:text-left">
               {/* Badge */}
               <div
-                className={`inline-flex items-center gap-2 px-4 py-1.5 mb-5 rounded-full bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 border border-pink-200/50 dark:border-purple-700/50 transition-all duration-700 ${
+                className={`inline-flex items-center gap-2 px-4 py-1.5 mb-5 rounded-full bg-white dark:bg-[#251f2d] border border-pink-200 dark:border-purple-700/50 shadow-sm transition-all duration-700 ${
                   mounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
                 }`}
               >
                 <Sparkles className="w-3.5 h-3.5 text-pink-500" />
-                <span className="text-xs font-semibold text-pink-600 dark:text-pink-300 font-['Nunito']">
+                <span className="text-xs font-bold text-pink-600 dark:text-pink-300 font-['Nunito']">
                   ✨ Kawaii Collection
                 </span>
               </div>
@@ -152,12 +152,14 @@ export default function Home() {
               </h1>
 
               <p
-                className={`text-lg sm:text-xl text-gray-600 dark:text-gray-300 font-['Nunito'] max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed transition-all duration-700 ${
+                className={`text-base sm:text-lg font-['Nunito'] max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed transition-all duration-700 ${
                   mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
                 }`}
                 style={{ transitionDelay: '600ms' }}
               >
-                {t('hero_subtitle')}
+                <span className="inline-block px-4 py-2 rounded-2xl bg-white/95 dark:bg-[#251f2d]/95 text-gray-800 dark:text-gray-100 font-bold border border-pink-200/80 dark:border-purple-800/40 shadow-sm">
+                  {t('hero_subtitle')}
+                </span>
               </p>
 
               <div
@@ -175,9 +177,9 @@ export default function Home() {
                 </Link>
                 <Link
                   to="/shipping"
-                  className="inline-flex items-center gap-2 px-6 py-4 rounded-full border-2 border-pink-200 dark:border-purple-700/50 text-gray-700 dark:text-gray-200 font-bold font-['Nunito'] hover:bg-pink-50 dark:hover:bg-purple-900/20 transition-all duration-300"
+                  className="inline-flex items-center gap-2 px-6 py-4 rounded-full bg-white dark:bg-[#251f2d] border-2 border-pink-200 hover:border-pink-300 dark:border-purple-700/60 text-gray-800 dark:text-gray-100 font-bold font-['Nunito'] hover:bg-pink-50 dark:hover:bg-purple-900/30 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 btn-press"
                 >
-                  <Truck className="w-5 h-5 text-purple-400" />
+                  <Truck className="w-5 h-5 text-purple-500" />
                   {t('nav_shipping')}
                 </Link>
               </div>
@@ -268,10 +270,12 @@ export default function Home() {
                 <h2 className="text-2xl sm:text-3xl font-extrabold font-['Quicksand'] text-gradient">
                   {lang === 'es' ? 'Artículos Destacados' : 'Featured Products'}
                 </h2>
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-['Nunito'] mt-1">
-                  {lang === 'es'
-                    ? 'Los favoritos más pedidos seleccionados para ti 💖'
-                    : 'The most popular favorites handpicked for you 💖'}
+                <p className="font-['Nunito'] mt-1">
+                  <span className="inline-block px-3 py-1 rounded-full bg-white/95 dark:bg-[#251f2d]/95 text-gray-800 dark:text-gray-200 font-bold text-xs sm:text-sm shadow-xs border border-pink-100 dark:border-purple-800/30">
+                    {lang === 'es'
+                      ? 'Los favoritos más pedidos seleccionados para ti 💖'
+                      : 'The most popular favorites handpicked for you 💖'}
+                  </span>
                 </p>
               </div>
 
@@ -351,16 +355,16 @@ export default function Home() {
             {stats.map((stat, i) => (
               <div
                 key={i}
-                className={`text-center p-4 sm:p-6 rounded-2xl bg-white/60 dark:bg-[#2a2430]/60 backdrop-blur-sm border border-pink-100/50 dark:border-purple-800/30 transition-all duration-500 hover:scale-105 stagger-${i + 1}`}
+                className={`text-center p-4 sm:p-6 rounded-2xl bg-white dark:bg-[#251f2d] shadow-lg shadow-pink-500/10 dark:shadow-purple-950/40 border-2 border-pink-200/90 dark:border-purple-700/50 transition-all duration-500 hover:scale-105 hover:shadow-xl hover:border-pink-300 stagger-${i + 1}`}
                 style={{ transitionDelay: `${i * 100}ms` }}
               >
-                <div className="inline-flex p-2 rounded-xl bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 text-pink-500 dark:text-pink-300 mb-2">
+                <div className="inline-flex p-2.5 rounded-xl bg-pink-50 dark:bg-purple-900/40 text-pink-500 dark:text-pink-300 border border-pink-100 dark:border-purple-800/30 mb-2 shadow-xs">
                   {stat.icon}
                 </div>
-                <div className="text-2xl sm:text-3xl font-extrabold font-['Quicksand'] text-gradient mb-1">
+                <div className="text-2xl sm:text-3xl font-extrabold font-['Quicksand'] bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent mb-1">
                   {stat.value}
                 </div>
-                <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-['Nunito'] font-semibold">
+                <div className="text-xs sm:text-sm text-gray-800 dark:text-gray-200 font-['Nunito'] font-bold">
                   {stat.label[lang]}
                 </div>
               </div>
@@ -379,17 +383,19 @@ export default function Home() {
             <h2 className="text-2xl sm:text-3xl font-extrabold font-['Quicksand'] text-gradient mb-3">
               {lang === 'es' ? '¿Por qué elegirnos?' : 'Why choose us?'}
             </h2>
-            <p className="text-gray-500 dark:text-gray-400 font-['Nunito'] max-w-md mx-auto">
-              {lang === 'es'
-                ? 'Te damos razones para confiar en tu compra ✨'
-                : 'We give you reasons to trust your purchase ✨'}
+            <p className="font-['Nunito'] max-w-md mx-auto">
+              <span className="inline-block px-4 py-1.5 rounded-full bg-white/95 dark:bg-[#251f2d]/95 text-gray-800 dark:text-gray-200 font-bold text-xs sm:text-sm shadow-xs border border-pink-100 dark:border-purple-800/30">
+                {lang === 'es'
+                  ? 'Te damos razones para confiar en tu compra ✨'
+                  : 'We give you reasons to trust your purchase ✨'}
+              </span>
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {features.map((f, i) => (
               <div
                 key={i}
-                className={`card-hover ${f.bg} rounded-2xl p-6 sm:p-8 border border-white/50 dark:border-purple-800/30 group`}
+                className={`card-hover bg-white dark:bg-[#251f2d] rounded-2xl p-6 sm:p-8 border-2 border-pink-100/80 dark:border-purple-800/40 shadow-md group`}
                 style={{ transitionDelay: `${i * 100}ms` }}
               >
                 <div className={`inline-flex p-3.5 rounded-2xl bg-gradient-to-br ${f.color} text-white mb-5 shadow-md group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
@@ -398,7 +404,7 @@ export default function Home() {
                 <h3 className="font-['Quicksand'] font-bold text-xl text-gray-800 dark:text-gray-100 mb-2">
                   {f.title[lang]}
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 font-['Nunito'] leading-relaxed">
+                <p className="text-sm text-gray-700 dark:text-gray-300 font-['Nunito'] font-medium leading-relaxed">
                   {f.desc[lang]}
                 </p>
               </div>

@@ -48,8 +48,10 @@ export default function Shipping() {
               {t('shipping_title')}
             </h1>
           </div>
-          <p className="text-gray-600 dark:text-gray-400 font-['Nunito'] max-w-lg mx-auto">
-            {t('shipping_subtitle')}
+          <p className="font-['Nunito'] max-w-lg mx-auto">
+            <span className="inline-block px-4 py-1.5 rounded-full bg-white/95 dark:bg-[#251f2d]/95 text-gray-800 dark:text-gray-100 font-bold text-xs sm:text-sm border border-pink-200 dark:border-purple-800/40 shadow-xs">
+              {t('shipping_subtitle')}
+            </span>
           </p>
         </div>
 
@@ -77,7 +79,7 @@ export default function Shipping() {
               return (
                 <div
                   key={method.id}
-                  className={`card-hover ${color.bg} rounded-2xl p-6 sm:p-8 border ${color.border} group`}
+                  className={`card-hover bg-white dark:bg-[#251f2d] rounded-2xl p-6 sm:p-8 border-2 border-pink-100/80 dark:border-purple-800/40 shadow-md group`}
                   style={{ 
                     animationDelay: `${i * 150}ms`
                   }}
@@ -89,19 +91,19 @@ export default function Shipping() {
                     {title}
                   </h3>
                   {desc && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 font-['Nunito'] mb-5 leading-relaxed">
+                    <p className="text-sm text-gray-700 dark:text-gray-300 font-['Nunito'] font-medium mb-5 leading-relaxed">
                       {desc}
                     </p>
                   )}
                   <div className="flex flex-wrap gap-3">
                     {method.cost_note && (
-                      <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/70 dark:bg-black/20 text-xs font-semibold text-gray-700 dark:text-gray-300 font-['Nunito'] border border-white/30 dark:border-gray-700/30 shadow-sm">
+                      <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-gray-50 dark:bg-black/30 text-xs font-bold text-gray-800 dark:text-gray-200 font-['Nunito'] border border-pink-100 dark:border-gray-700/50 shadow-xs">
                         <DollarSign className="w-3.5 h-3.5 text-green-500" />
                         {t('shipping_cost')}: {method.cost_note}
                       </div>
                     )}
                     {method.delivery_time && (
-                      <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/70 dark:bg-black/20 text-xs font-semibold text-gray-700 dark:text-gray-300 font-['Nunito'] border border-white/30 dark:border-gray-700/30 shadow-sm">
+                      <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-gray-50 dark:bg-black/30 text-xs font-bold text-gray-800 dark:text-gray-200 font-['Nunito'] border border-pink-100 dark:border-gray-700/50 shadow-xs">
                         <Clock className="w-3.5 h-3.5 text-blue-500" />
                         {t('shipping_time')}: {method.delivery_time}
                       </div>

@@ -72,11 +72,13 @@ export default function Catalog() {
               {t('catalog_title')}
             </h1>
           </div>
-          <p className="text-gray-500 dark:text-gray-400 font-['Nunito'] mt-2">
-            {lang === 'es' 
-              ? `${filtered.length} productos disponibles` 
-              : `${filtered.length} products available`}
-          </p>
+          <div className="mt-2">
+            <span className="inline-block px-4 py-1.5 rounded-full bg-white/95 dark:bg-[#251f2d]/95 text-gray-800 dark:text-gray-100 font-bold text-xs sm:text-sm border border-pink-200 dark:border-purple-800/40 shadow-xs">
+              {lang === 'es' 
+                ? `${filtered.length} productos disponibles` 
+                : `${filtered.length} products available`}
+            </span>
+          </div>
         </div>
 
         {/* Filters */}

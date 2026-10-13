@@ -40,7 +40,6 @@ export default function ProductDetailModal({
   }, [product.id])
 
   const handleOrder = () => {
-    recordView(product.id)
     if (openWhatsApp) {
       openWhatsApp(title, product.price)
     } else {

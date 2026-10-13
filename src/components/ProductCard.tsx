@@ -62,7 +62,6 @@ export default function ProductCard({
   }
 
   const handleCardClick = () => {
-    recordView(product.id)
     if (onOpenModal) {
       onOpenModal(product, activeImgIndex)
     }

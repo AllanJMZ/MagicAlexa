@@ -5,6 +5,9 @@ import { supabase } from '../lib/supabase'
 const STORAGE_KEY = 'magic_product_views'
 const EVENT_NAME = 'magic_product_views_updated'
 
+// Cooldown to prevent duplicate calls from double clicks, modal open + card click, or React StrictMode
+const lastViewTimestamps: Record<string, number> = {}
+
 export function useProductViews() {
   const [viewsMap, setViewsMap] = useState<Record<string, number>>(() => {
     try {
@@ -41,6 +44,14 @@ export function useProductViews() {
   // Increment view count for a product
   const recordView = async (productId: string) => {
     if (!productId) return
+
+    const now = Date.now()
+    const last = lastViewTimestamps[productId] || 0
+    if (now - last < 2500) {
+      // Ignorar llamada duplicada para este producto
+      return
+    }
+    lastViewTimestamps[productId] = now
 
     // 1. Update in local storage state
     let updatedCount = 1

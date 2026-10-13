@@ -6,8 +6,10 @@ import { supabase } from '../lib/supabase'
 import type { Category, Product, ShippingMethod } from '../types'
 import { getProductImages } from '../types'
 import AnimatedStar from '../components/AnimatedStar'
+import BulkImportAdmin from '../components/BulkImportAdmin'
 import {
   Edit3,
+  FileSpreadsheet,
   ImagePlus,
   Layers,
   LogIn,
@@ -24,7 +26,7 @@ import {
   X,
 } from 'lucide-react'
 
-type Tab = 'products' | 'categories' | 'shipping' | 'banner' | 'featured'
+type Tab = 'products' | 'bulk' | 'featured' | 'categories' | 'shipping' | 'banner'
 
 export default function Admin() {
   const { t } = useTranslation()
@@ -114,6 +116,7 @@ export default function Admin() {
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: 'products', label: t('admin_products'), icon: <Package className="w-4 h-4" /> },
+    { key: 'bulk', label: '📥 Carga Masiva', icon: <FileSpreadsheet className="w-4 h-4" /> },
     { key: 'featured', label: '⭐ Carrusel Inicio', icon: <Star className="w-4 h-4" /> },
     { key: 'categories', label: t('admin_categories'), icon: <Layers className="w-4 h-4" /> },
     { key: 'shipping', label: t('admin_shipping'), icon: <Truck className="w-4 h-4" /> },
@@ -160,7 +163,8 @@ export default function Admin() {
 
         {/* Tab content */}
         <div className="bg-white dark:bg-[#2a2430] rounded-2xl border border-pink-100/50 dark:border-purple-800/30 shadow-sm p-6">
-          {tab === 'products' && <ProductsAdmin />}
+          {tab === 'products' && <ProductsAdmin onOpenBulk={() => setTab('bulk')} />}
+          {tab === 'bulk' && <BulkImportAdmin onDone={() => setTab('products')} />}
           {tab === 'featured' && <FeaturedAdmin />}
           {tab === 'categories' && <CategoriesAdmin />}
           {tab === 'shipping' && <ShippingAdmin />}
@@ -172,7 +176,7 @@ export default function Admin() {
 }
 
 /* ─── Products CRUD ───────────────────────────────────── */
-function ProductsAdmin() {
+function ProductsAdmin({ onOpenBulk }: { onOpenBulk?: () => void }) {
   const { t } = useTranslation()
   const { products, refetch } = useProducts()
   const { categories } = useCategories()
@@ -429,11 +433,22 @@ function ProductsAdmin() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-['Quicksand'] font-bold text-lg text-gray-800 dark:text-gray-100">{t('admin_products')}</h3>
-        <button onClick={() => setCreating(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-400 to-pink-400 text-white text-sm font-bold rounded-full shadow-md hover:shadow-lg transition-all font-['Nunito']">
-          <Plus className="w-4 h-4" />
-          {t('admin_add')}
-        </button>
+        <div className="flex items-center gap-2">
+          {onOpenBulk && (
+            <button
+              onClick={onOpenBulk}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-pink-100 dark:bg-purple-900/30 hover:bg-pink-200 dark:hover:bg-purple-900/50 text-pink-600 dark:text-pink-300 text-xs font-bold rounded-full border border-pink-200 dark:border-purple-700/50 transition-all font-['Nunito'] shadow-sm"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              Carga Masiva
+            </button>
+          )}
+          <button onClick={() => setCreating(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-400 to-pink-400 text-white text-sm font-bold rounded-full shadow-md hover:shadow-lg transition-all font-['Nunito']">
+            <Plus className="w-4 h-4" />
+            {t('admin_add')}
+          </button>
+        </div>
       </div>
       <div className="space-y-3">
         {products.map((p) => {

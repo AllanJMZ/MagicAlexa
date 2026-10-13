@@ -7,7 +7,9 @@ import type { Category, Product, ShippingMethod } from '../types'
 import { getProductImages } from '../types'
 import AnimatedStar from '../components/AnimatedStar'
 import BulkImportAdmin from '../components/BulkImportAdmin'
+import BulkPhotosAdmin from '../components/BulkPhotosAdmin'
 import {
+  Camera,
   Edit3,
   FileSpreadsheet,
   ImagePlus,
@@ -26,7 +28,7 @@ import {
   X,
 } from 'lucide-react'
 
-type Tab = 'products' | 'bulk' | 'featured' | 'categories' | 'shipping' | 'banner'
+type Tab = 'products' | 'bulk' | 'photos' | 'featured' | 'categories' | 'shipping' | 'banner'
 
 export default function Admin() {
   const { t } = useTranslation()
@@ -117,6 +119,7 @@ export default function Admin() {
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: 'products', label: t('admin_products'), icon: <Package className="w-4 h-4" /> },
     { key: 'bulk', label: '📥 Carga Masiva', icon: <FileSpreadsheet className="w-4 h-4" /> },
+    { key: 'photos', label: '📸 Fotos Masivas', icon: <Camera className="w-4 h-4" /> },
     { key: 'featured', label: '⭐ Carrusel Inicio', icon: <Star className="w-4 h-4" /> },
     { key: 'categories', label: t('admin_categories'), icon: <Layers className="w-4 h-4" /> },
     { key: 'shipping', label: t('admin_shipping'), icon: <Truck className="w-4 h-4" /> },
@@ -163,8 +166,19 @@ export default function Admin() {
 
         {/* Tab content */}
         <div className="bg-white dark:bg-[#2a2430] rounded-2xl border border-pink-100/50 dark:border-purple-800/30 shadow-sm p-6">
-          {tab === 'products' && <ProductsAdmin onOpenBulk={() => setTab('bulk')} />}
-          {tab === 'bulk' && <BulkImportAdmin onDone={() => setTab('products')} />}
+          {tab === 'products' && (
+            <ProductsAdmin
+              onOpenBulk={() => setTab('bulk')}
+              onOpenPhotos={() => setTab('photos')}
+            />
+          )}
+          {tab === 'bulk' && (
+            <BulkImportAdmin
+              onDone={() => setTab('products')}
+              onGoToPhotos={() => setTab('photos')}
+            />
+          )}
+          {tab === 'photos' && <BulkPhotosAdmin onDone={() => setTab('products')} />}
           {tab === 'featured' && <FeaturedAdmin />}
           {tab === 'categories' && <CategoriesAdmin />}
           {tab === 'shipping' && <ShippingAdmin />}
@@ -176,7 +190,13 @@ export default function Admin() {
 }
 
 /* ─── Products CRUD ───────────────────────────────────── */
-function ProductsAdmin({ onOpenBulk }: { onOpenBulk?: () => void }) {
+function ProductsAdmin({
+  onOpenBulk,
+  onOpenPhotos,
+}: {
+  onOpenBulk?: () => void
+  onOpenPhotos?: () => void
+}) {
   const { t } = useTranslation()
   const { products, refetch } = useProducts()
   const { categories } = useCategories()
@@ -431,20 +451,29 @@ function ProductsAdmin({ onOpenBulk }: { onOpenBulk?: () => void }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <h3 className="font-['Quicksand'] font-bold text-lg text-gray-800 dark:text-gray-100">{t('admin_products')}</h3>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {onOpenBulk && (
             <button
               onClick={onOpenBulk}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-pink-100 dark:bg-purple-900/30 hover:bg-pink-200 dark:hover:bg-purple-900/50 text-pink-600 dark:text-pink-300 text-xs font-bold rounded-full border border-pink-200 dark:border-purple-700/50 transition-all font-['Nunito'] shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-pink-100 dark:bg-purple-900/30 hover:bg-pink-200 dark:hover:bg-purple-900/50 text-pink-600 dark:text-pink-300 text-xs font-bold rounded-full border border-pink-200 dark:border-purple-700/50 transition-all font-['Nunito'] shadow-sm"
             >
               <FileSpreadsheet className="w-3.5 h-3.5" />
               Carga Masiva
             </button>
           )}
+          {onOpenPhotos && (
+            <button
+              onClick={onOpenPhotos}
+              className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-purple-100 dark:bg-purple-900/40 hover:bg-purple-200 dark:hover:bg-purple-900/60 text-purple-600 dark:text-purple-300 text-xs font-bold rounded-full border border-purple-200 dark:border-purple-700/50 transition-all font-['Nunito'] shadow-sm"
+            >
+              <Camera className="w-3.5 h-3.5" />
+              Fotos Masivas
+            </button>
+          )}
           <button onClick={() => setCreating(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-400 to-pink-400 text-white text-sm font-bold rounded-full shadow-md hover:shadow-lg transition-all font-['Nunito']">
+            className="flex items-center gap-1.5 px-4 py-1.5 sm:py-2 bg-gradient-to-r from-purple-400 to-pink-400 text-white text-xs sm:text-sm font-bold rounded-full shadow-md hover:shadow-lg transition-all font-['Nunito']">
             <Plus className="w-4 h-4" />
             {t('admin_add')}
           </button>

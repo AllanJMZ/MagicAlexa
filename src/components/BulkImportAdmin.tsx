@@ -32,7 +32,13 @@ interface ParsedProductRow {
   errorMessage?: string
 }
 
-export default function BulkImportAdmin({ onDone }: { onDone?: () => void }) {
+export default function BulkImportAdmin({
+  onDone,
+  onGoToPhotos,
+}: {
+  onDone?: () => void
+  onGoToPhotos?: () => void
+}) {
   const { products, refetch: refetchProducts } = useProducts()
   const { categories, refetch: refetchCategories } = useCategories()
 
@@ -398,6 +404,25 @@ export default function BulkImportAdmin({ onDone }: { onDone?: () => void }) {
           Descargar Plantilla (.csv)
         </button>
       </div>
+
+      {/* Shortcut banner to bulk photos */}
+      {onGoToPhotos && (
+        <div className="p-3.5 rounded-2xl bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border border-purple-200/60 dark:border-purple-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-['Nunito']">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">📸</span>
+            <span className="text-gray-700 dark:text-gray-300">
+              ¿Ya importaste tus productos y quieres subir todas sus fotos juntas?
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={onGoToPhotos}
+            className="px-3.5 py-1.5 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-bold transition-all shadow-sm self-start sm:self-auto flex-shrink-0"
+          >
+            Subir Fotos Masivas →
+          </button>
+        </div>
+      )}
 
       {/* STEP 1: INPUT */}
       {step === 'input' && (

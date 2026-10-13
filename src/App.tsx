@@ -4,6 +4,7 @@ import Navbar from './components/Navbar'
 import Banner from './components/Banner'
 import Footer from './components/Footer'
 import ScrollProgress from './components/ScrollProgress'
+import ScrollToTop from './components/ScrollToTop'
 import Home from './pages/Home'
 import Catalog from './pages/Catalog'
 import Shipping from './pages/Shipping'
@@ -34,6 +35,7 @@ export default function App() {
           <Banner />
           <AnimatedRoutes />
           <Footer />
+          <ScrollToTop />
         </div>
       </HashRouter>
     </ThemeProvider>

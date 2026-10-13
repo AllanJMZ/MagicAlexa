@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DEMO_CATEGORIES, DEMO_SHIPPING, useAuth, useCategories, useProducts, useShippingMethods, useSiteSettings } from '../hooks/useSupabase'
+import { useFeaturedProducts } from '../hooks/useFeaturedProducts'
 import { supabase } from '../lib/supabase'
 import type { Category, Product, ShippingMethod } from '../types'
 import { getProductImages } from '../types'
@@ -17,12 +18,13 @@ import {
   Save,
   ShieldCheck,
   Sparkles,
+  Star,
   Trash2,
   Truck,
   X,
 } from 'lucide-react'
 
-type Tab = 'products' | 'categories' | 'shipping' | 'banner'
+type Tab = 'products' | 'categories' | 'shipping' | 'banner' | 'featured'
 
 export default function Admin() {
   const { t } = useTranslation()
@@ -112,6 +114,7 @@ export default function Admin() {
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: 'products', label: t('admin_products'), icon: <Package className="w-4 h-4" /> },
+    { key: 'featured', label: '⭐ Carrusel Inicio', icon: <Star className="w-4 h-4" /> },
     { key: 'categories', label: t('admin_categories'), icon: <Layers className="w-4 h-4" /> },
     { key: 'shipping', label: t('admin_shipping'), icon: <Truck className="w-4 h-4" /> },
     { key: 'banner', label: 'Banner & Temporada', icon: <MessageSquare className="w-4 h-4" /> },
@@ -158,6 +161,7 @@ export default function Admin() {
         {/* Tab content */}
         <div className="bg-white dark:bg-[#2a2430] rounded-2xl border border-pink-100/50 dark:border-purple-800/30 shadow-sm p-6">
           {tab === 'products' && <ProductsAdmin />}
+          {tab === 'featured' && <FeaturedAdmin />}
           {tab === 'categories' && <CategoriesAdmin />}
           {tab === 'shipping' && <ShippingAdmin />}
           {tab === 'banner' && <BannerAdmin />}
@@ -172,6 +176,7 @@ function ProductsAdmin() {
   const { t } = useTranslation()
   const { products, refetch } = useProducts()
   const { categories } = useCategories()
+  const { isFeatured, toggleFeatured } = useFeaturedProducts()
   const [editing, setEditing] = useState<Product | null>(null)
   const [creating, setCreating] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -449,6 +454,21 @@ function ProductsAdmin() {
                 <p className="text-xs text-gray-500 dark:text-gray-400 font-['Nunito']">${p.price.toFixed(2)}</p>
               </div>
               <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const res = toggleFeatured(p.id)
+                    if (!res.success && res.message) alert(res.message)
+                  }}
+                  className={`p-2 rounded-lg transition-all ${
+                    isFeatured(p.id)
+                      ? 'text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 hover:bg-yellow-100'
+                      : 'text-gray-400 hover:text-yellow-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  }`}
+                  title={isFeatured(p.id) ? 'Destacado en Inicio (clic para quitar)' : 'Destacar en carrusel de inicio (hasta 10)'}
+                >
+                  <Star className={`w-4 h-4 ${isFeatured(p.id) ? 'fill-yellow-400' : ''}`} />
+                </button>
                 <button onClick={() => startEdit(p)} className="p-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/20 text-purple-500 transition-all">
                   <Edit3 className="w-4 h-4" />
                 </button>
@@ -462,6 +482,108 @@ function ProductsAdmin() {
         {products.length === 0 && (
           <p className="text-center text-gray-400 dark:text-gray-500 font-['Nunito'] py-8">{t('catalog_empty')}</p>
         )}
+      </div>
+    </div>
+  )
+}
+
+/* ─── Featured Products (Carrusel Inicio) Admin ──────── */
+function FeaturedAdmin() {
+  const { products } = useProducts()
+  const { featuredIds, isFeatured, toggleFeatured, setFeaturedIds } = useFeaturedProducts()
+
+  const handleToggle = (id: string) => {
+    const res = toggleFeatured(id)
+    if (!res.success && res.message) {
+      alert(res.message)
+    }
+  }
+
+  const handleSelectFirst10 = () => {
+    const first10 = products.slice(0, 10).map((p) => p.id)
+    setFeaturedIds(first10)
+  }
+
+  const handleClearAll = () => {
+    if (confirm('¿Deseas desmarcar todos los artículos destacados?')) {
+      setFeaturedIds([])
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <h3 className="font-['Quicksand'] font-bold text-lg text-gray-800 dark:text-gray-100">
+              ⭐ Carrusel de Inicio (Artículos Destacados)
+            </h3>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-pink-100 dark:bg-purple-900/40 text-pink-600 dark:text-pink-300">
+              {featuredIds.length}/10 seleccionados
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 font-['Nunito'] mt-0.5">
+            Selecciona hasta 10 artículos para mostrarlos en el mini carrusel de la página principal.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleSelectFirst10}
+            className="px-3 py-1.5 rounded-full text-xs font-bold bg-pink-100 dark:bg-purple-900/30 text-pink-600 dark:text-pink-300 hover:bg-pink-200 transition-all font-['Nunito']"
+          >
+            Primeros 10
+          </button>
+          <button
+            type="button"
+            onClick={handleClearAll}
+            className="px-3 py-1.5 rounded-full text-xs font-bold border border-gray-300 dark:border-gray-700 text-gray-500 hover:text-red-500 transition-all font-['Nunito']"
+          >
+            Limpiar
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {products.map((p) => {
+          const imgs = getProductImages(p)
+          const firstImg = imgs[0] || 'https://images.unsplash.com/photo-1546776310-eef45dd6d63c?w=400'
+          const featured = isFeatured(p.id)
+
+          return (
+            <div
+              key={p.id}
+              onClick={() => handleToggle(p.id)}
+              className={`flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer ${
+                featured
+                  ? 'border-yellow-300 dark:border-yellow-600/50 bg-yellow-50/40 dark:bg-yellow-900/10 shadow-sm'
+                  : 'border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-[#1F1B24]'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={featured}
+                onChange={() => {}}
+                className="w-4 h-4 rounded accent-pink-400 cursor-pointer"
+              />
+              <img src={firstImg} alt={p.title_es} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="font-['Quicksand'] font-bold text-sm text-gray-800 dark:text-gray-100 truncate">
+                  {p.title_es}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-['Nunito']">
+                  ${p.price.toFixed(2)}
+                </p>
+              </div>
+              <Star
+                className={`w-5 h-5 flex-shrink-0 transition-colors ${
+                  featured ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300 dark:text-gray-600'
+                }`}
+              />
+            </div>
+          )
+        })}
       </div>
     </div>
   )

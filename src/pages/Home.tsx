@@ -1,15 +1,35 @@
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Heart, Package, ShieldCheck, Sparkles, Star, Truck, Zap } from 'lucide-react'
+import { ArrowRight, ChevronLeft, ChevronRight, Heart, Package, ShieldCheck, Sparkles, Star, Truck, Zap } from 'lucide-react'
 import { useReveal, useMounted } from '../hooks/useAnimations'
 import { useProducts, useSiteSettings } from '../hooks/useSupabase'
+import { useFeaturedProducts } from '../hooks/useFeaturedProducts'
+import type { Product } from '../types'
 import AnimatedStar from '../components/AnimatedStar'
+import ProductCard from '../components/ProductCard'
+import ProductDetailModal from '../components/ProductDetailModal'
 
 export default function Home() {
   const { t, i18n } = useTranslation()
   const mounted = useMounted()
   const { products } = useProducts()
   const { settings } = useSiteSettings()
+  const { getFeaturedProducts } = useFeaturedProducts()
+  const featuredProducts = getFeaturedProducts(products)
+  const [modalProduct, setModalProduct] = useState<{ product: Product; imgIndex: number } | null>(null)
+  const carouselRef = useRef<HTMLDivElement>(null)
+
+  const scrollCarousel = (direction: 'left' | 'right') => {
+    if (carouselRef.current) {
+      const scrollAmount = 300
+      carouselRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      })
+    }
+  }
+
   const lang = i18n.language as 'es' | 'en'
 
   // Local fallback if saved in admin
@@ -233,6 +253,92 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Mini Carrusel de Artículos Destacados (Hasta 10 artículos) */}
+      {featuredProducts.length > 0 && (
+        <section className="py-8 sm:py-14 bg-gradient-to-b from-transparent via-pink-50/40 dark:via-purple-950/20 to-transparent">
+          <div className="max-w-7xl mx-auto px-4">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 sm:mb-8">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-100 dark:bg-purple-900/40 text-pink-600 dark:text-pink-300 text-xs font-bold font-['Nunito'] mb-2 shadow-sm">
+                  <Sparkles className="w-3.5 h-3.5 text-pink-500" />
+                  {lang === 'es' ? 'Colección Especial' : 'Special Selection'}
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-extrabold font-['Quicksand'] text-gradient">
+                  {lang === 'es' ? 'Artículos Destacados' : 'Featured Products'}
+                </h2>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-['Nunito'] mt-1">
+                  {lang === 'es'
+                    ? 'Los favoritos más pedidos seleccionados para ti 💖'
+                    : 'The most popular favorites handpicked for you 💖'}
+                </p>
+              </div>
+
+              {/* Controls and Link */}
+              <div className="flex items-center gap-3 self-end sm:self-auto">
+                <Link
+                  to="/catalog"
+                  className="text-xs sm:text-sm font-bold text-pink-500 hover:text-pink-600 dark:text-pink-400 font-['Nunito'] flex items-center gap-1 transition-colors mr-2"
+                >
+                  {lang === 'es' ? 'Ver todo el catálogo' : 'View all'}
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => scrollCarousel('left')}
+                    className="p-2 sm:p-2.5 rounded-full bg-white dark:bg-[#251f2d] border border-pink-200 dark:border-purple-800/40 text-gray-700 dark:text-gray-200 hover:bg-pink-50 dark:hover:bg-purple-900/30 shadow-sm transition-all hover:scale-105 active:scale-95"
+                    title="Anterior"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollCarousel('right')}
+                    className="p-2 sm:p-2.5 rounded-full bg-white dark:bg-[#251f2d] border border-pink-200 dark:border-purple-800/40 text-gray-700 dark:text-gray-200 hover:bg-pink-50 dark:hover:bg-purple-900/30 shadow-sm transition-all hover:scale-105 active:scale-95"
+                    title="Siguiente"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Carousel Container */}
+            <div
+              ref={carouselRef}
+              className="flex items-stretch gap-4 sm:gap-6 overflow-x-auto pb-4 pt-1 snap-x snap-mandatory scroll-smooth"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {featuredProducts.map((p, idx) => (
+                <div
+                  key={p.id}
+                  className="w-[230px] sm:w-[260px] flex-shrink-0 snap-start flex flex-col"
+                >
+                  <ProductCard
+                    product={p}
+                    index={idx}
+                    lang={lang}
+                    onOpenModal={(prod, imgIdx) => setModalProduct({ product: prod, imgIndex: imgIdx })}
+                    className="h-full"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Quick View Modal if opened from home carousel */}
+      {modalProduct && (
+        <ProductDetailModal
+          product={modalProduct.product}
+          initialImgIndex={modalProduct.imgIndex}
+          lang={lang}
+          onClose={() => setModalProduct(null)}
+        />
+      )}
 
       {/* Stats */}
       <section className="py-4 sm:py-8">

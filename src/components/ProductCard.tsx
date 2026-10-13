@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react'
 import { getProductImages, type Product } from '../types'
 import { WHATSAPP_NUMBER } from '../lib/supabase'
+import { useProductViews } from '../hooks/useProductViews'
 
 interface ProductCardProps {
   product: Product
@@ -30,6 +31,7 @@ export default function ProductCard({
   className = '',
 }: ProductCardProps) {
   const [activeImgIndex, setActiveImgIndex] = useState(0)
+  const { recordView } = useProductViews()
   const images = getProductImages(product)
   const currentImage = images[activeImgIndex] || product.image_url || 'https://images.unsplash.com/photo-1546776310-eef45dd6d63c?w=500'
   const title = lang === 'es' ? product.title_es : product.title_en
@@ -47,6 +49,7 @@ export default function ProductCard({
 
   const handleWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation()
+    recordView(product.id)
     if (openWhatsApp) {
       openWhatsApp(title, product.price)
       return
@@ -58,11 +61,18 @@ export default function ProductCard({
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank')
   }
 
+  const handleCardClick = () => {
+    recordView(product.id)
+    if (onOpenModal) {
+      onOpenModal(product, activeImgIndex)
+    }
+  }
+
   const badgeText = getBadgeLabel ? getBadgeLabel(product.badge) : product.badge === 'new' ? 'Nuevo' : product.badge
 
   return (
     <div
-      onClick={() => onOpenModal && onOpenModal(product, activeImgIndex)}
+      onClick={handleCardClick}
       className={`group relative bg-white dark:bg-[#251f2d] rounded-3xl p-3 sm:p-3.5 border border-gray-100 dark:border-purple-800/30 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col cursor-pointer ${className}`}
       style={{ animationDelay: `${Math.min(index * 60, 300)}ms` }}
     >

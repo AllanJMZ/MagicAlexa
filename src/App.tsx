@@ -5,6 +5,7 @@ import Banner from './components/Banner'
 import Footer from './components/Footer'
 import ScrollProgress from './components/ScrollProgress'
 import ScrollToTop from './components/ScrollToTop'
+import SiteBackground from './components/SiteBackground'
 import Home from './pages/Home'
 import Catalog from './pages/Catalog'
 import Shipping from './pages/Shipping'
@@ -29,7 +30,8 @@ export default function App() {
   return (
     <ThemeProvider>
       <HashRouter>
-        <div className="flex flex-col min-h-screen text-gray-800 dark:text-gray-100 transition-colors duration-300">
+        <div className="flex flex-col min-h-screen text-gray-800 dark:text-gray-100 transition-colors duration-300 relative">
+          <SiteBackground />
           <ScrollProgress />
           <Navbar />
           <Banner />

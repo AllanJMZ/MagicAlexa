@@ -18,6 +18,7 @@ export interface Product {
   images?: string[]
   in_stock: boolean
   badge: string | null
+  views?: number
   created_at: string
 }
 
@@ -61,5 +62,9 @@ export interface SiteSettings {
   season_title_en?: string | null
   season_desc_es?: string | null
   season_desc_en?: string | null
+  bg_image_url?: string | null
+  bg_pattern_repeat?: boolean | null
+  bg_opacity?: number | null
+  bg_active?: boolean | null
 }
 

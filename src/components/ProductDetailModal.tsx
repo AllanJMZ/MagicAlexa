@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MessageCircle, X } from 'lucide-react'
 import { getProductImages, type Product } from '../types'
 import { WHATSAPP_NUMBER } from '../lib/supabase'
+import { useProductViews } from '../hooks/useProductViews'
 
 interface ProductDetailModalProps {
   product: Product
@@ -29,11 +30,17 @@ export default function ProductDetailModal({
 }: ProductDetailModalProps) {
   const images = getProductImages(product)
   const [currentIdx, setCurrentIdx] = useState(initialImgIndex)
+  const { recordView } = useProductViews()
   const title = lang === 'es' ? product.title_es : product.title_en
   const desc = lang === 'es' ? product.description_es : product.description_en
   const currentImage = images[currentIdx] || product.image_url
 
+  useEffect(() => {
+    recordView(product.id)
+  }, [product.id])
+
   const handleOrder = () => {
+    recordView(product.id)
     if (openWhatsApp) {
       openWhatsApp(title, product.price)
     } else {

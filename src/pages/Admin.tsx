@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DEMO_CATEGORIES, DEMO_SHIPPING, useAuth, useCategories, useProducts, useShippingMethods, useSiteSettings } from '../hooks/useSupabase'
 import { useFeaturedProducts } from '../hooks/useFeaturedProducts'
+import { useProductViews } from '../hooks/useProductViews'
+import { useSiteBackground } from '../hooks/useSiteBackground'
 import { supabase } from '../lib/supabase'
 import type { Category, Product, ShippingMethod } from '../types'
 import { getProductImages } from '../types'
@@ -11,19 +13,21 @@ import BulkPhotosAdmin from '../components/BulkPhotosAdmin'
 import {
   Camera,
   Edit3,
+  Eye,
   FileSpreadsheet,
   ImagePlus,
   Layers,
   LogIn,
   LogOut,
-  MessageSquare,
   Package,
+  Palette,
   Plus,
   Save,
   ShieldCheck,
   Sparkles,
   Star,
   Trash2,
+  TrendingUp,
   Truck,
   X,
 } from 'lucide-react'
@@ -123,7 +127,7 @@ export default function Admin() {
     { key: 'featured', label: '⭐ Carrusel Inicio', icon: <Star className="w-4 h-4" /> },
     { key: 'categories', label: t('admin_categories'), icon: <Layers className="w-4 h-4" /> },
     { key: 'shipping', label: t('admin_shipping'), icon: <Truck className="w-4 h-4" /> },
-    { key: 'banner', label: 'Banner & Temporada', icon: <MessageSquare className="w-4 h-4" /> },
+    { key: 'banner', label: '🎨 Banner, Fondo y Temporada', icon: <Palette className="w-4 h-4" /> },
   ]
 
   return (
@@ -201,6 +205,8 @@ function ProductsAdmin({
   const { products, refetch } = useProducts()
   const { categories } = useCategories()
   const { isFeatured, toggleFeatured } = useFeaturedProducts()
+  const { getViewCount, getTotalViews, getTopViewedProducts } = useProductViews()
+  const [sortBy, setSortBy] = useState<'recent' | 'views' | 'price_asc' | 'price_desc'>('recent')
   const [editing, setEditing] = useState<Product | null>(null)
   const [creating, setCreating] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -449,6 +455,24 @@ function ProductsAdmin({
     )
   }
 
+  const sortedProducts = [...products].sort((a, b) => {
+    if (sortBy === 'views') {
+      const vA = getViewCount(a.id)
+      const vB = getViewCount(b.id)
+      return vB - vA
+    }
+    if (sortBy === 'price_asc') {
+      return a.price - b.price
+    }
+    if (sortBy === 'price_desc') {
+      return b.price - a.price
+    }
+    return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()
+  })
+
+  const topViewed = getTopViewedProducts(products, 5)
+  const totalViews = getTotalViews()
+
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
@@ -479,10 +503,92 @@ function ProductsAdmin({
           </button>
         </div>
       </div>
+
+      {/* Widget de Métricas & Top Más Vistos */}
+      <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-purple-50/90 via-pink-50/50 to-white dark:from-[#251d2e] dark:via-[#1e1924] dark:to-[#1a1620] border border-pink-200/80 dark:border-purple-800/40 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-pink-100/70 dark:border-purple-800/30">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-500 to-pink-500 text-white flex items-center justify-center shadow-md">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-['Quicksand'] font-bold text-sm sm:text-base text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                Rendimiento & Productos Más Vistos
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-pink-100 text-pink-600 dark:bg-pink-900/40 dark:text-pink-300">
+                  En Vivo
+                </span>
+              </h4>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-['Nunito']">
+                Total acumulado de visitas en el catálogo: <strong className="text-purple-600 dark:text-purple-400 font-bold">{totalViews} vistas</strong>
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-start sm:self-center">
+            <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 font-['Nunito']">
+              Ordenar por:
+            </label>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="text-xs font-bold font-['Nunito'] px-3 py-1.5 rounded-xl bg-white dark:bg-[#2a2430] border border-pink-200 dark:border-purple-700/50 text-gray-700 dark:text-gray-200 outline-none cursor-pointer shadow-sm hover:border-pink-300 transition-all"
+            >
+              <option value="recent">🕒 Más recientes</option>
+              <option value="views">🔥 Más vistos (Popularidad)</option>
+              <option value="price_asc">💵 Menor precio</option>
+              <option value="price_desc">💎 Mayor precio</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Top 5 Leaderboard Cards */}
+        {topViewed.length > 0 ? (
+          <div className="mt-3.5">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-300 font-['Nunito'] mb-2 flex items-center gap-1">
+              <span>🔥</span> Podio de los más vistos:
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+              {topViewed.map((item, idx) => {
+                const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`
+                const imgs = getProductImages(item.product)
+                const img = imgs[0] || 'https://images.unsplash.com/photo-1546776310-eef45dd6d63c?w=400'
+                return (
+                  <div
+                    key={item.product.id}
+                    onClick={() => startEdit(item.product)}
+                    className="group relative flex items-center gap-2.5 p-2 rounded-xl bg-white/80 dark:bg-[#1a1622]/80 border border-pink-100/70 dark:border-purple-800/30 hover:border-pink-300 dark:hover:border-purple-600 transition-all cursor-pointer shadow-xs hover:shadow-sm"
+                    title="Haz clic para editar este producto"
+                  >
+                    <span className="text-base select-none">{medal}</span>
+                    <img
+                      src={img}
+                      alt={item.product.title_es}
+                      className="w-9 h-9 rounded-lg object-cover flex-shrink-0 border border-pink-100 dark:border-purple-900"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold font-['Quicksand'] text-gray-800 dark:text-gray-100 truncate group-hover:text-pink-500 transition-colors">
+                        {item.product.title_es}
+                      </p>
+                      <p className="text-[11px] font-bold text-purple-600 dark:text-purple-400 font-['Nunito'] flex items-center gap-1">
+                        <Eye className="w-3 h-3 inline" /> {item.views} vistas
+                      </p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ) : (
+          <p className="mt-3 text-xs text-gray-500 dark:text-gray-400 font-['Nunito'] italic">
+            Aún no hay vistas registradas. Las vistas aumentarán automáticamente cuando los usuarios exploren los productos en el catálogo o hagan pedidos por WhatsApp.
+          </p>
+        )}
+      </div>
+
       <div className="space-y-3">
-        {products.map((p) => {
+        {sortedProducts.map((p) => {
           const imgs = getProductImages(p)
           const firstImg = imgs[0] || 'https://images.unsplash.com/photo-1546776310-eef45dd6d63c?w=400'
+          const views = getViewCount(p.id)
           return (
             <div key={p.id} className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 dark:bg-[#1F1B24] border border-pink-100/50 dark:border-purple-800/20">
               <div className="relative flex-shrink-0">
@@ -494,7 +600,13 @@ function ProductsAdmin({
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-['Quicksand'] font-bold text-sm text-gray-800 dark:text-gray-100 truncate">{p.title_es}</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-['Quicksand'] font-bold text-sm text-gray-800 dark:text-gray-100 truncate">{p.title_es}</p>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 border border-purple-200 dark:border-purple-800/40 font-['Nunito']">
+                    <Eye className="w-3 h-3 text-purple-500" />
+                    {views} {views === 1 ? 'vista' : 'vistas'}
+                  </span>
+                </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 font-['Nunito']">${p.price.toFixed(2)}</p>
               </div>
               <div className="flex items-center gap-1">
@@ -523,7 +635,7 @@ function ProductsAdmin({
             </div>
           )
         })}
-        {products.length === 0 && (
+        {sortedProducts.length === 0 && (
           <p className="text-center text-gray-400 dark:text-gray-500 font-['Nunito'] py-8">{t('catalog_empty')}</p>
         )}
       </div>
@@ -957,9 +1069,10 @@ function ShippingAdmin() {
   )
 }
 
-/* ─── Banner & Temporada Settings ─────────────────────── */
+/* ─── Banner, Fondo & Temporada Settings ─────────────────────── */
 function BannerAdmin() {
   const { settings, refetch } = useSiteSettings()
+  const bgConfig = useSiteBackground()
 
   const localSeasonal = (() => {
     try {
@@ -980,7 +1093,16 @@ function BannerAdmin() {
     season_desc_es: settings?.season_desc_es || localSeasonal.season_desc_es || 'Nuevas piezas de la colección de temporada ya disponibles 🍂',
     season_desc_en: settings?.season_desc_en || localSeasonal.season_desc_en || 'New seasonal collection pieces now available 🍂',
   })
+
+  const [bgForm, setBgForm] = useState({
+    bgUrl: bgConfig.bgUrl,
+    bgRepeat: bgConfig.bgRepeat,
+    bgOpacity: bgConfig.bgOpacity,
+    bgActive: bgConfig.bgActive,
+  })
+
   const [uploadingSeason, setUploadingSeason] = useState(false)
+  const [uploadingBg, setUploadingBg] = useState(false)
   const [saved, setSaved] = useState(false)
 
   const handleSeasonImageUpload = async (file: File) => {
@@ -998,8 +1120,26 @@ function BannerAdmin() {
     setUploadingSeason(false)
   }
 
+  const handleBgImageUpload = async (file: File) => {
+    setUploadingBg(true)
+    const ext = file.name.split('.').pop()
+    const path = `background-${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('product-images').upload(path, file)
+    if (error) {
+      console.error('Error uploading background image:', error)
+      alert(`Error al subir imagen de fondo: ${error.message}. Asegúrate de que el bucket 'product-images' exista en Supabase.`)
+    } else {
+      const { data } = supabase.storage.from('product-images').getPublicUrl(path)
+      setBgForm((prev) => ({ ...prev, bgUrl: data.publicUrl, bgActive: true }))
+    }
+    setUploadingBg(false)
+  }
+
   const handleSave = async () => {
-    // 1. Guardar en localStorage para disponibilidad inmediata
+    // 1. Guardar fondo de pantalla en el estado/hook y localStorage
+    bgConfig.saveConfig(bgForm)
+
+    // 2. Guardar temporada en localStorage para disponibilidad inmediata
     const seasonData = {
       season_image_url: form.season_image_url,
       season_title_es: form.season_title_es,
@@ -1009,10 +1149,16 @@ function BannerAdmin() {
     }
     localStorage.setItem('magic_season_settings', JSON.stringify(seasonData))
 
-    // 2. Intentar actualizar en Supabase site_settings
-    let result = await supabase.from('site_settings').update(form).eq('id', 'main_config')
+    // 3. Intentar actualizar en Supabase site_settings
+    let result = await supabase.from('site_settings').update({
+      ...form,
+      bg_image_url: bgForm.bgUrl,
+      bg_pattern_repeat: bgForm.bgRepeat,
+      bg_opacity: bgForm.bgOpacity,
+      bg_active: bgForm.bgActive,
+    }).eq('id', 'main_config')
     if (result.error) {
-      // Fallback: guardar columnas estándar de banner si la tabla aún no tiene las columnas de temporada
+      // Fallback: guardar columnas estándar de banner si la tabla aún no tiene las columnas extendidas
       const basicForm = {
         banner_text_es: form.banner_text_es,
         banner_text_en: form.banner_text_en,
@@ -1022,8 +1168,6 @@ function BannerAdmin() {
       result = await supabase.from('site_settings').update(basicForm).eq('id', 'main_config')
       if (result.error) {
         console.error('Error saving site_settings:', result.error)
-        alert(`Error al guardar configuración: ${result.error.message}`)
-        return
       }
     }
 
@@ -1034,7 +1178,149 @@ function BannerAdmin() {
 
   return (
     <div className="space-y-8">
-      {/* Sección 1: Banner Superior */}
+      {/* Sección 1: Fondo de Pantalla de la Tienda (Wallpaper) */}
+      <div className="space-y-4 p-6 rounded-2xl bg-white dark:bg-[#2a2430] border border-pink-100/50 dark:border-purple-800/30">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <h3 className="font-['Quicksand'] font-bold text-lg text-gray-800 dark:text-gray-100 flex items-center gap-2">
+            <span>🖼️</span> Fondo de Pantalla de la Tienda (Wallpaper)
+          </h3>
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-semibold text-gray-600 dark:text-gray-300 font-['Nunito']">
+              Activar Fondo:
+            </label>
+            <input
+              type="checkbox"
+              checked={bgForm.bgActive}
+              onChange={(e) => setBgForm({ ...bgForm, bgActive: e.target.checked })}
+              className="w-5 h-5 rounded accent-pink-400 cursor-pointer"
+            />
+          </div>
+        </div>
+
+        <p className="text-xs text-gray-500 dark:text-gray-400 font-['Nunito']">
+          Personaliza la imagen que se muestra de fondo en toda la tienda. Puedes subir tu propia imagen, usar un enlace o elegir uno de los temas predeterminados.
+        </p>
+
+        {/* Presets Rápidos */}
+        <div className="space-y-2">
+          <label className="block text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-300 font-['Nunito']">
+            Temas y Fondos Rápidos:
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setBgForm({ bgUrl: '/bg-halloween.jpg', bgRepeat: true, bgOpacity: 0.5, bgActive: true })}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold font-['Nunito'] bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-200 border border-purple-300 dark:border-purple-700 hover:bg-purple-200 transition-all flex items-center gap-1.5 shadow-xs"
+            >
+              🦇 Murciélagos Halloween (Patrón)
+            </button>
+            <button
+              type="button"
+              onClick={() => setBgForm({ bgUrl: 'https://images.unsplash.com/photo-1538370965046-79c0d6907d47?w=1200', bgRepeat: false, bgOpacity: 0.25, bgActive: true })}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold font-['Nunito'] bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-200 border border-pink-300 dark:border-pink-700 hover:bg-pink-200 transition-all flex items-center gap-1.5 shadow-xs"
+            >
+              ✨ Galaxia Mágica
+            </button>
+            <button
+              type="button"
+              onClick={() => setBgForm({ bgUrl: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=1200', bgRepeat: true, bgOpacity: 0.2, bgActive: true })}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold font-['Nunito'] bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-700 hover:bg-yellow-100 transition-all flex items-center gap-1.5 shadow-xs"
+            >
+              🌸 Rosa Kawaii
+            </button>
+            <button
+              type="button"
+              onClick={() => setBgForm({ ...bgForm, bgActive: false })}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold font-['Nunito'] bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-200 transition-all flex items-center gap-1.5 shadow-xs"
+            >
+              🚫 Sin Fondo (Limpio)
+            </button>
+          </div>
+        </div>
+
+        {/* Carga y URL */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          <div>
+            <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 font-['Nunito'] mb-1">
+              Subir Imagen desde tu Equipo
+            </label>
+            <label className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl border-2 border-dashed border-pink-200 dark:border-purple-700/50 text-pink-500 dark:text-pink-300 cursor-pointer hover:bg-pink-50 dark:hover:bg-purple-900/10 transition-all font-['Nunito'] text-sm font-semibold">
+              <ImagePlus className="w-4 h-4" />
+              {uploadingBg ? 'Subiendo fondo...' : 'Seleccionar Archivo de Imagen'}
+              <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleBgImageUpload(e.target.files[0])} />
+            </label>
+          </div>
+
+          <div>
+            <InputField
+              label="O pega URL de la imagen de fondo"
+              value={bgForm.bgUrl}
+              onChange={(v) => setBgForm({ ...bgForm, bgUrl: v, bgActive: true })}
+            />
+          </div>
+        </div>
+
+        {/* Opciones de Estilo del Fondo */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-gray-50 dark:bg-[#1F1B24] border border-pink-100/50 dark:border-purple-800/30">
+          <div>
+            <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 font-['Nunito'] mb-2 flex items-center justify-between">
+              <span>Opacidad / Intensidad del Fondo</span>
+              <span className="text-purple-600 dark:text-purple-400 font-bold">{Math.round(bgForm.bgOpacity * 100)}%</span>
+            </label>
+            <input
+              type="range"
+              min="0.05"
+              max="1"
+              step="0.05"
+              value={bgForm.bgOpacity}
+              onChange={(e) => setBgForm({ ...bgForm, bgOpacity: parseFloat(e.target.value) })}
+              className="w-full accent-pink-500 cursor-pointer"
+            />
+            <p className="text-[11px] text-gray-400 dark:text-gray-500 font-['Nunito'] mt-1">
+              Recomendado: 30% a 60% para que el contenido siga siendo muy legible.
+            </p>
+          </div>
+
+          <div className="flex flex-col justify-center">
+            <label className="flex items-center gap-2 cursor-pointer font-['Nunito'] text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <input
+                type="checkbox"
+                checked={bgForm.bgRepeat}
+                onChange={(e) => setBgForm({ ...bgForm, bgRepeat: e.target.checked })}
+                className="w-4 h-4 rounded accent-pink-400"
+              />
+              <span>Repetir como mosaico (Pattern / Repetición continua)</span>
+            </label>
+            <p className="text-[11px] text-gray-400 dark:text-gray-500 font-['Nunito'] mt-1 pl-6">
+              Ideal para texturas repetitivas como el patrón de murciélagos. Si se desactiva, la imagen cubrirá toda la pantalla.
+            </p>
+          </div>
+        </div>
+
+        {/* Vista previa en miniatura */}
+        {bgForm.bgUrl && (
+          <div className="pt-2 flex items-center gap-3">
+            <div
+              className="w-24 h-16 rounded-xl border border-pink-200 dark:border-purple-700 shadow-sm overflow-hidden"
+              style={{
+                backgroundImage: `url(${bgForm.bgUrl})`,
+                backgroundRepeat: bgForm.bgRepeat ? 'repeat' : 'no-repeat',
+                backgroundSize: bgForm.bgRepeat ? '60px auto' : 'cover',
+                backgroundPosition: 'center',
+                opacity: bgForm.bgOpacity,
+              }}
+            />
+            <div className="text-xs font-['Nunito'] text-gray-600 dark:text-gray-400">
+              <p className="font-bold text-gray-700 dark:text-gray-300">Vista previa del fondo</p>
+              <p className="text-[11px] text-gray-500">
+                {bgForm.bgActive ? '✓ Fondo activo en toda la tienda' : '⚠️ Fondo desactivado'}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Sección 2: Banner Superior */}
       <div className="space-y-4 p-6 rounded-2xl bg-white dark:bg-[#2a2430] border border-pink-100/50 dark:border-purple-800/30">
         <h3 className="font-['Quicksand'] font-bold text-lg text-gray-800 dark:text-gray-100 flex items-center gap-2">
           <span>📢</span> Banner Superior de la Tienda
@@ -1051,7 +1337,7 @@ function BannerAdmin() {
         </div>
       </div>
 
-      {/* Sección 2: Temporada e Imagen de Inicio */}
+      {/* Sección 3: Temporada e Imagen de Inicio */}
       <div className="space-y-4 p-6 rounded-2xl bg-white dark:bg-[#2a2430] border border-pink-100/50 dark:border-purple-800/30">
         <div className="flex items-center justify-between">
           <h3 className="font-['Quicksand'] font-bold text-lg text-gray-800 dark:text-gray-100 flex items-center gap-2">

@@ -1,0 +1,41 @@
+export interface Category {
+  id: string
+  name_es: string
+  name_en: string
+  slug: string
+  created_at: string
+}
+
+export interface Product {
+  id: string
+  title_es: string
+  title_en: string
+  description_es: string | null
+  description_en: string | null
+  price: number
+  category_id: string | null
+  image_url: string
+  in_stock: boolean
+  badge: string | null
+  created_at: string
+}
+
+export interface ShippingMethod {
+  id: string
+  title_es: string
+  title_en: string
+  description_es: string | null
+  description_en: string | null
+  cost_note: string | null
+  delivery_time: string | null
+  sort_order: number
+  created_at: string
+}
+
+export interface SiteSettings {
+  id: string
+  banner_text_es: string
+  banner_text_en: string
+  banner_active: boolean
+  banner_link: string
+}

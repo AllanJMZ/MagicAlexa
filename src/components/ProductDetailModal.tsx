@@ -37,7 +37,12 @@ export default function ProductDetailModal({
 
   useEffect(() => {
     recordView(product.id)
-  }, [product.id])
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [product.id, onClose])
 
   const handleOrder = () => {
     if (openWhatsApp) {
@@ -55,21 +60,38 @@ export default function ProductDetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in-up"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm overflow-y-auto animate-fade-in-up"
       onClick={onClose}
     >
+      {/* Botón de cierre flotante fijo en la esquina superior de la pantalla (siempre visible en móviles) */}
+      <button
+        type="button"
+        onClick={onClose}
+        className="fixed top-3 right-3 sm:top-5 sm:right-5 z-[110] p-2.5 sm:p-3 rounded-full bg-white/95 dark:bg-[#251f2d]/95 text-gray-800 dark:text-gray-100 border-2 border-pink-200 dark:border-purple-700 shadow-xl hover:scale-110 active:scale-95 transition-all cursor-pointer"
+        aria-label="Cerrar producto"
+        title="Cerrar (Esc)"
+      >
+        <X className="w-5 h-5 sm:w-6 sm:h-6" />
+      </button>
+
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-3xl rounded-3xl bg-white dark:bg-[#2a2430] border border-pink-100/50 dark:border-purple-800/30 overflow-hidden shadow-2xl"
+        className="relative w-full max-w-3xl my-auto max-h-[90vh] flex flex-col rounded-3xl bg-white dark:bg-[#2a2430] border-2 border-pink-100 dark:border-purple-800/40 overflow-hidden shadow-2xl"
       >
+        {/* Botón de cierre interno dentro de la tarjeta */}
         <button
+          type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 p-2 rounded-full bg-white/80 dark:bg-black/60 text-gray-700 dark:text-gray-200 hover:bg-white dark:hover:bg-black transition-all shadow-md"
+          className="absolute top-3 right-3 z-30 p-2 sm:p-2.5 rounded-full bg-white/90 dark:bg-[#1f1b24]/90 text-gray-800 dark:text-gray-100 border border-pink-200 dark:border-purple-700 hover:bg-white dark:hover:bg-black transition-all shadow-md active:scale-95 cursor-pointer"
+          aria-label="Cerrar producto"
+          title="Cerrar"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
 
-        <div className="grid grid-cols-1 md:grid-cols-2">
+        {/* Contenido con scroll interno para que nunca se desborde en pantallas pequeñas */}
+        <div className="overflow-y-auto flex-1 overscroll-contain">
+          <div className="grid grid-cols-1 md:grid-cols-2">
           {/* Photos column */}
           <div className="p-6 bg-pink-50/40 dark:bg-[#1f1b24] flex flex-col justify-center">
             <div className="relative aspect-square rounded-2xl overflow-hidden mb-3 border border-pink-100 dark:border-purple-800/30 shadow-sm">
@@ -141,5 +163,6 @@ export default function ProductDetailModal({
         </div>
       </div>
     </div>
+  </div>
   )
 }

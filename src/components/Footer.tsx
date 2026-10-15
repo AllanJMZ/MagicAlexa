@@ -20,7 +20,7 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           {/* Branding */}
           <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 font-['Nunito']">
-            <span>© {year} MagicAlexa Shop.</span>
+            <span>© {year} MagicCalexa Shop.</span>
             <span>{t('footer_rights')}.</span>
           </div>
 

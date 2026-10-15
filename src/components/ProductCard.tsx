@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import { ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react'
+import { memo, useState } from 'react'
+import { ChevronLeft, ChevronRight, MessageCircle, Share2 } from 'lucide-react'
 import { getProductImages, type Product } from '../types'
 import { WHATSAPP_NUMBER } from '../lib/supabase'
-import { useProductViews } from '../hooks/useProductViews'
+import { recordProductView } from '../hooks/useProductViews'
+import ShareProductModal from './ShareProductModal'
 
 interface ProductCardProps {
   product: Product
@@ -11,6 +12,7 @@ interface ProductCardProps {
   getBadgeLabel?: (badge: string | null) => string | null
   openWhatsApp?: (title: string, price: number) => void
   onOpenModal?: (product: Product, initialImgIndex: number) => void
+  onShare?: (product: Product) => void
   className?: string
 }
 
@@ -21,17 +23,18 @@ const BADGE_STYLES: Record<string, string> = {
   exclusive: 'bg-[#8b5cf6] text-white',
 }
 
-export default function ProductCard({
+const ProductCard = memo(function ProductCard({
   product,
   index = 0,
   lang,
   getBadgeLabel,
   openWhatsApp,
   onOpenModal,
+  onShare,
   className = '',
 }: ProductCardProps) {
   const [activeImgIndex, setActiveImgIndex] = useState(0)
-  const { recordView } = useProductViews()
+  const [shareOpen, setShareOpen] = useState(false)
   const images = getProductImages(product)
   const currentImage = images[activeImgIndex] || product.image_url || 'https://images.unsplash.com/photo-1546776310-eef45dd6d63c?w=500'
   const title = lang === 'es' ? product.title_es : product.title_en
@@ -49,7 +52,7 @@ export default function ProductCard({
 
   const handleWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation()
-    recordView(product.id)
+    recordProductView(product.id)
     if (openWhatsApp) {
       openWhatsApp(title, product.price)
       return
@@ -61,6 +64,15 @@ export default function ProductCard({
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank')
   }
 
+  const handleShare = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (onShare) {
+      onShare(product)
+    } else {
+      setShareOpen(true)
+    }
+  }
+
   const handleCardClick = () => {
     if (onOpenModal) {
       onOpenModal(product, activeImgIndex)
@@ -70,123 +82,150 @@ export default function ProductCard({
   const badgeText = getBadgeLabel ? getBadgeLabel(product.badge) : product.badge === 'new' ? 'Nuevo' : product.badge
 
   return (
-    <div
-      onClick={handleCardClick}
-      className={`group relative bg-white dark:bg-[#251f2d] rounded-3xl p-3 sm:p-3.5 border border-gray-100 dark:border-purple-800/30 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col cursor-pointer ${className}`}
-      style={{ animationDelay: `${Math.min(index * 60, 300)}ms` }}
-    >
-      {/* Image container inside padded card with rounded corners */}
-      <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-gray-50 dark:bg-gray-800 flex-shrink-0">
-        <img
-          src={currentImage}
-          alt={title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          loading="lazy"
-        />
+    <>
+      <div
+        onClick={handleCardClick}
+        className={`group relative bg-white dark:bg-[#251f2d] rounded-3xl p-3 sm:p-3.5 border border-gray-100 dark:border-purple-800/30 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col cursor-pointer ${className}`}
+        style={{ animationDelay: `${Math.min(index * 60, 300)}ms` }}
+      >
+        {/* Image container inside padded card with rounded corners */}
+        <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-gray-50 dark:bg-gray-800 flex-shrink-0">
+          <img
+            src={currentImage}
+            alt={title}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+            decoding="async"
+          />
 
-        {/* Carousel arrows (when 2 or 3 photos) */}
-        {images.length > 1 && (
-          <div className="absolute inset-x-2 top-1/2 -translate-y-1/2 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 pointer-events-auto">
-            <button
-              type="button"
-              onClick={handlePrev}
-              className="p-1.5 rounded-full bg-white/90 dark:bg-black/70 text-gray-800 dark:text-gray-100 hover:bg-white dark:hover:bg-black shadow-md backdrop-blur-sm transition-transform hover:scale-110"
-              title="Foto anterior"
-            >
-              <ChevronLeft className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={handleNext}
-              className="p-1.5 rounded-full bg-white/90 dark:bg-black/70 text-gray-800 dark:text-gray-100 hover:bg-white dark:hover:bg-black shadow-md backdrop-blur-sm transition-transform hover:scale-110"
-              title="Siguiente foto"
-            >
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
-
-        {/* Dots indicator for multiple photos */}
-        {images.length > 1 && (
-          <div className="absolute bottom-2.5 inset-x-0 flex items-center justify-center gap-1.5 z-10 pointer-events-auto">
-            {images.map((_, idx) => (
+          {/* Carousel arrows (when 2 or 3 photos) */}
+          {images.length > 1 && (
+            <div className="absolute inset-x-2 top-1/2 -translate-y-1/2 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 pointer-events-auto">
               <button
-                key={idx}
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setActiveImgIndex(idx)
-                }}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  activeImgIndex === idx
-                    ? 'w-4 bg-pink-500 shadow-sm'
-                    : 'w-1.5 bg-white/80 dark:bg-white/50 hover:bg-white'
-                }`}
-              />
-            ))}
-          </div>
-        )}
+                onClick={handlePrev}
+                className="p-1.5 rounded-full bg-white/90 dark:bg-black/70 text-gray-800 dark:text-gray-100 hover:bg-white dark:hover:bg-black shadow-md backdrop-blur-sm transition-transform hover:scale-110"
+                title="Foto anterior"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={handleNext}
+                className="p-1.5 rounded-full bg-white/90 dark:bg-black/70 text-gray-800 dark:text-gray-100 hover:bg-white dark:hover:bg-black shadow-md backdrop-blur-sm transition-transform hover:scale-110"
+                title="Siguiente foto"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
 
-        {/* Photo counter badge (e.g. 1/3) */}
-        {images.length > 1 && (
-          <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-[10px] font-bold text-white font-['Nunito'] z-10">
-            {activeImgIndex + 1}/{images.length}
-          </div>
-        )}
+          {/* Dots indicator for multiple photos */}
+          {images.length > 1 && (
+            <div className="absolute bottom-2.5 inset-x-0 flex items-center justify-center gap-1.5 z-10 pointer-events-auto">
+              {images.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setActiveImgIndex(idx)
+                  }}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    activeImgIndex === idx
+                      ? 'w-4 bg-pink-500 shadow-sm'
+                      : 'w-1.5 bg-white/80 dark:bg-white/50 hover:bg-white'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
 
-        {/* Badge (e.g. "Nuevo" in bright turquoise green) */}
-        {product.badge && (
-          <div
-            className={`absolute top-2.5 left-2.5 px-3 py-1 rounded-full text-xs font-bold font-['Nunito'] shadow-sm z-10 ${
-              BADGE_STYLES[product.badge] || BADGE_STYLES['new']
-            }`}
-          >
-            {badgeText}
-          </div>
-        )}
+          {/* Photo counter badge (e.g. 1/3) */}
+          {images.length > 1 && (
+            <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-[10px] font-bold text-white font-['Nunito'] z-10">
+              {activeImgIndex + 1}/{images.length}
+            </div>
+          )}
 
-        {/* Out of stock overlay */}
-        {!product.in_stock && (
-          <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px] flex items-center justify-center z-20">
-            <span className="px-3.5 py-1.5 bg-gray-900/90 text-white text-xs font-bold rounded-full font-['Nunito']">
-              Agotado
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Card Info */}
-      <div className="mt-3 flex-1 flex flex-col justify-between">
-        <div>
-          {/* Title */}
-          <h3 className="font-['Quicksand'] font-bold text-gray-900 dark:text-gray-100 text-lg leading-tight line-clamp-1 group-hover:text-pink-600 dark:group-hover:text-pink-300 transition-colors">
-            {title}
-          </h3>
-          {/* Subtitle / Description */}
-          <p className="font-['Nunito'] text-sm text-gray-400 dark:text-gray-400 line-clamp-1 mt-0.5 mb-2">
-            {desc || '—'}
-          </p>
-        </div>
-
-        {/* Price and WhatsApp Button */}
-        <div className="flex items-center justify-between pt-1 mt-auto">
-          <span className="font-['Quicksand'] font-extrabold text-lg sm:text-xl text-[#581566] dark:text-pink-300">
-            ${product.price.toFixed(2)}
-          </span>
-
-          {product.in_stock && (
-            <button
-              type="button"
-              onClick={handleWhatsApp}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#25D366] hover:bg-[#20ba59] active:scale-95 text-white font-['Nunito'] font-bold text-xs sm:text-sm rounded-full shadow-sm hover:shadow transition-all duration-200"
-              title="Pedir por WhatsApp"
+          {/* Badge (e.g. "Nuevo" in bright turquoise green) */}
+          {product.badge && (
+            <div
+              className={`absolute top-2.5 left-2.5 px-3 py-1 rounded-full text-xs font-bold font-['Nunito'] shadow-sm z-10 ${
+                BADGE_STYLES[product.badge] || BADGE_STYLES['new']
+              }`}
             >
-              <MessageCircle className="w-3.5 h-3.5 fill-current" />
-              <span>¡Lo quiero!</span>
-            </button>
+              {badgeText}
+            </div>
+          )}
+
+          {/* Out of stock overlay */}
+          {!product.in_stock && (
+            <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px] flex items-center justify-center z-20">
+              <span className="px-3.5 py-1.5 bg-gray-900/90 text-white text-xs font-bold rounded-full font-['Nunito']">
+                Agotado
+              </span>
+            </div>
           )}
         </div>
+
+        {/* Card Info */}
+        <div className="mt-3 flex-1 flex flex-col justify-between">
+          <div>
+            {/* Title */}
+            <h3 className="font-['Quicksand'] font-bold text-gray-900 dark:text-gray-100 text-lg leading-tight line-clamp-1 group-hover:text-pink-600 dark:group-hover:text-pink-300 transition-colors">
+              {title}
+            </h3>
+            {/* Subtitle / Description */}
+            <p className="font-['Nunito'] text-sm text-gray-400 dark:text-gray-400 line-clamp-1 mt-0.5 mb-2">
+              {desc || '—'}
+            </p>
+          </div>
+
+          {/* Price, Share and WhatsApp Buttons */}
+          <div className="flex items-center justify-between pt-1 mt-auto gap-1.5">
+            <span className="font-['Quicksand'] font-extrabold text-base sm:text-lg text-[#581566] dark:text-pink-300">
+              ${product.price.toFixed(2)}
+            </span>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleShare}
+                className="p-1.5 sm:p-2 rounded-full bg-pink-50 hover:bg-pink-100 dark:bg-purple-900/30 dark:hover:bg-purple-800/60 text-pink-600 dark:text-pink-300 border border-pink-200/50 dark:border-purple-700/50 hover:scale-105 active:scale-95 transition-all shadow-2xs"
+                title={lang === 'es' ? 'Compartir producto' : 'Share product'}
+                aria-label="Compartir"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+              </button>
+
+              {product.in_stock && (
+                <button
+                  type="button"
+                  onClick={handleWhatsApp}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#25D366] hover:bg-[#20ba59] active:scale-95 text-white font-['Nunito'] font-bold text-xs sm:text-sm rounded-full shadow-sm hover:shadow transition-all duration-200"
+                  title="Pedir por WhatsApp"
+                >
+                  <MessageCircle className="w-3.5 h-3.5 fill-current" />
+                  <span>¡Lo quiero!</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+
+      {/* Share Product Modal */}
+      {shareOpen && !onShare && (
+        <ShareProductModal
+          product={product}
+          lang={lang}
+          isOpen={shareOpen}
+          onClose={() => setShareOpen(false)}
+        />
+      )}
+    </>
   )
-}
+})
+
+export default ProductCard

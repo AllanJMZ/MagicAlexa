@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useCategories, useProducts } from '../hooks/useSupabase'
 import { useReveal, useMounted } from '../hooks/useAnimations'
@@ -7,6 +7,7 @@ import type { Product } from '../types'
 import { Search, ShoppingBag, Sparkles, X } from 'lucide-react'
 import ProductCard from '../components/ProductCard'
 import ProductDetailModal from '../components/ProductDetailModal'
+import { getProductIdFromUrl } from '../lib/share'
 
 export default function Catalog() {
   const { t, i18n } = useTranslation()
@@ -20,6 +21,31 @@ export default function Catalog() {
 
   const lang = i18n.language as 'es' | 'en'
 
+  // Auto-open product modal if opened via shared product URL
+  useEffect(() => {
+    if (products.length === 0) return
+    const sharedId = getProductIdFromUrl()
+    if (sharedId) {
+      const found = products.find((p) => p.id === sharedId)
+      if (found) {
+        setModalProduct({ product: found, imgIndex: 0 })
+      }
+    }
+  }, [products])
+
+  const handleOpenModal = useCallback((product: Product, imgIndex: number) => {
+    setModalProduct({ product, imgIndex })
+  }, [])
+
+  const handleCloseModal = useCallback(() => {
+    setModalProduct(null)
+    const hash = window.location.hash
+    if (hash.includes('product=')) {
+      const cleanHash = hash.replace(/[?&]product=[^&]+/, '')
+      window.history.replaceState(null, '', `${window.location.pathname}${cleanHash}`)
+    }
+  }, [])
+
   const filtered = useMemo(() => {
     return products.filter((p) => {
       const matchesSearch =
@@ -31,16 +57,16 @@ export default function Catalog() {
     })
   }, [products, search, activeCategory])
 
-  const openWhatsApp = (title: string, price: number) => {
+  const openWhatsApp = useCallback((title: string, price: number) => {
     const msg = t('whatsapp_msg', { title, price: price.toFixed(2) })
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank')
-  }
+  }, [t])
 
-  const getBadgeLabel = (badge: string | null) => {
+  const getBadgeLabel = useCallback((badge: string | null) => {
     if (!badge) return null
     const key = `badge_${badge}` as const
     return t(key)
-  }
+  }, [t])
 
   if (loadingProducts || loadingCategories) {
     return (
@@ -165,7 +191,7 @@ export default function Catalog() {
                 lang={lang}
                 getBadgeLabel={getBadgeLabel}
                 openWhatsApp={openWhatsApp}
-                onOpenModal={(p, idx) => setModalProduct({ product: p, imgIndex: idx })}
+                onOpenModal={handleOpenModal}
               />
             ))}
           </div>
@@ -180,7 +206,7 @@ export default function Catalog() {
           lang={lang}
           getBadgeLabel={getBadgeLabel}
           openWhatsApp={openWhatsApp}
-          onClose={() => setModalProduct(null)}
+          onClose={handleCloseModal}
         />
       )}
     </div>

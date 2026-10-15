@@ -8,6 +8,48 @@ const EVENT_NAME = 'magic_product_views_updated'
 // Cooldown to prevent duplicate calls from double clicks, modal open + card click, or React StrictMode
 const lastViewTimestamps: Record<string, number> = {}
 
+export function recordProductView(productId: string) {
+  if (!productId) return
+
+  const now = Date.now()
+  const last = lastViewTimestamps[productId] || 0
+  if (now - last < 5000) {
+    return
+  }
+  lastViewTimestamps[productId] = now
+
+  // Process asynchronously after 800ms so it never interferes with opening modal animations
+  setTimeout(async () => {
+    let updatedCount = 1
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      const currentMap: Record<string, number> = saved ? JSON.parse(saved) : {}
+      updatedCount = (currentMap[productId] || 0) + 1
+      currentMap[productId] = updatedCount
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentMap))
+      window.dispatchEvent(new Event(EVENT_NAME))
+    } catch {
+      // ignore
+    }
+
+    try {
+      const { error: rpcError } = await supabase.rpc('increment_product_views', { p_id: productId })
+      if (!rpcError) return
+    } catch {
+      // ignore if RPC not configured yet
+    }
+
+    try {
+      await supabase
+        .from('products')
+        .update({ views: updatedCount })
+        .eq('id', productId)
+    } catch {
+      // silently ignore if column does not exist
+    }
+  }, 800)
+}
+
 export function useProductViews() {
   const [viewsMap, setViewsMap] = useState<Record<string, number>>(() => {
     try {
@@ -41,50 +83,8 @@ export function useProductViews() {
     }
   }, [])
 
-  // Increment view count for a product
-  const recordView = async (productId: string) => {
-    if (!productId) return
-
-    const now = Date.now()
-    const last = lastViewTimestamps[productId] || 0
-    if (now - last < 2500) {
-      // Ignorar llamada duplicada para este producto
-      return
-    }
-    lastViewTimestamps[productId] = now
-
-    // 1. Update in local storage state
-    let updatedCount = 1
-    setViewsMap((prev) => {
-      const current = prev[productId] || 0
-      updatedCount = current + 1
-      const nextMap = { ...prev, [productId]: updatedCount }
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(nextMap))
-        window.dispatchEvent(new Event(EVENT_NAME))
-      } catch {
-        // ignore
-      }
-      return nextMap
-    })
-
-    // 2. Try calling increment_product_views RPC first (best practice for public atomic views)
-    try {
-      const { error: rpcError } = await supabase.rpc('increment_product_views', { p_id: productId })
-      if (!rpcError) return
-    } catch {
-      // ignore if RPC not configured yet
-    }
-
-    // 3. Fallback: direct update in Supabase products table (if views column exists)
-    try {
-      await supabase
-        .from('products')
-        .update({ views: updatedCount })
-        .eq('id', productId)
-    } catch {
-      // silently ignore if column does not exist
-    }
+  const recordView = (productId: string) => {
+    recordProductView(productId)
   }
 
   const getViewCount = (productId: string, product?: Product): number => {

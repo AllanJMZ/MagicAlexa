@@ -79,6 +79,16 @@ const resources = {
       admin_sort_order: 'Orden',
       admin_no_category: 'Sin categoría',
       
+      // Share
+      share_product: 'Compartir producto',
+      share_subtitle: 'Envía este lindo artículo a tus amigos',
+      share_native: 'Compartir en mis aplicaciones',
+      share_direct: 'Compartir directamente en:',
+      share_copy_link: 'Copiar enlace',
+      share_copied: '¡Copiado!',
+      share_copy_message: 'Copiar texto con detalles listo para WhatsApp o SMS',
+      share_message_copied: '¡Mensaje completo copiado!',
+
       // WhatsApp message
       whatsapp_msg: '¡Hola! Me interesa este artículo de Pusheen: {{title}} (${{price}}). ¿Sigue disponible?',
       
@@ -164,6 +174,16 @@ const resources = {
       admin_sort_order: 'Sort order',
       admin_no_category: 'No category',
       
+      // Share
+      share_product: 'Share product',
+      share_subtitle: 'Send this cute item to your friends',
+      share_native: 'Share to apps on device',
+      share_direct: 'Share directly to:',
+      share_copy_link: 'Copy link',
+      share_copied: 'Copied!',
+      share_copy_message: 'Copy formatted text ready for chat',
+      share_message_copied: 'Full message copied!',
+
       // WhatsApp message
       whatsapp_msg: 'Hi! I\'m interested in this Pusheen item: {{title}} (${{price}}). Is it still available?',
       

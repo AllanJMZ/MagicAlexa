@@ -1,6 +1,6 @@
-# ✨ MagicAlexa BoliShop — Tienda Kawaii & Coleccionables
+# ✨ MagicCalexa BoliShop — Tienda Kawaii & Coleccionables
 
-Aplicación web moderna de comercio electrónico y catálogo interactivo para **MagicAlexa BoliShop**, especializada en artículos coleccionables kawaii (Pusheen, peluches, papelería y moda). Diseñada con un enfoque centrado en la experiencia de usuario (UX), micro-interacciones visuales fluidas, diseño responsivo, soporte bilingüe (Español / Inglés), modo oscuro y conexión directa de compras por WhatsApp.
+Aplicación web moderna de comercio electrónico y catálogo interactivo para **MagicCalexa BoliShop**, especializada en artículos coleccionables kawaii (Pusheen, peluches, papelería y moda). Diseñada con un enfoque centrado en la experiencia de usuario (UX), micro-interacciones visuales fluidas, diseño responsivo, soporte bilingüe (Español / Inglés), modo oscuro y conexión directa de compras por WhatsApp.
 
 ---
 
@@ -35,7 +35,7 @@ El proyecto está construido con un stack frontend moderno de alto rendimiento, 
 ## 📂 Arquitectura del Proyecto
 
 ```text
-MagicAlexaShop/
+MagicCalexaShop/
 ├── public/                     # Recursos estáticos públicos (wallpapers, favicon, logos)
 │   └── bg-halloween.jpg        # Patrón de fondo seamless temático de murciélagos
 ├── src/
@@ -182,9 +182,9 @@ El proyecto está configurado para despliegue continuo (CI/CD) conectado a la ra
 ## 📱 Redes Sociales Oficiales
 
 - **Instagram**: [magiccalexa_bolishop](https://www.instagram.com/magiccalexa_bolishop/)
-- **Grupo de WhatsApp**: [Comunidad Oficial MagicAlexa](https://chat.whatsapp.com/Dj9KYMa7x5z92relKdRFTI)
+- **Grupo de WhatsApp**: [Comunidad Oficial MagicCalexa](https://chat.whatsapp.com/Dj9KYMa7x5z92relKdRFTI)
 - **Facebook**: [MagicCalexaBolishop](https://www.facebook.com/MagicCalexaBolishop#)
 
 ---
 
-Hecho con 💖 para **MagicAlexa BoliShop**.
+Hecho con 💖 para **MagicCalexa BoliShop**.

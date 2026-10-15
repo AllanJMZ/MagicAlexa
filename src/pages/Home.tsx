@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { ArrowRight, ChevronLeft, ChevronRight, Heart, Package, ShieldCheck, Sparkles, Star, Truck, Zap } from 'lucide-react'
@@ -10,6 +10,7 @@ import AnimatedStar from '../components/AnimatedStar'
 import ProductCard from '../components/ProductCard'
 import ProductDetailModal from '../components/ProductDetailModal'
 import { FacebookIcon, InstagramIcon, WhatsAppIcon, SOCIAL_LINKS } from '../components/SocialIcons'
+import { getProductIdFromUrl } from '../lib/share'
 
 export default function Home() {
   const { t, i18n } = useTranslation()
@@ -20,6 +21,31 @@ export default function Home() {
   const featuredProducts = getFeaturedProducts(products)
   const [modalProduct, setModalProduct] = useState<{ product: Product; imgIndex: number } | null>(null)
   const carouselRef = useRef<HTMLDivElement>(null)
+
+  // Auto-open product modal if opened via shared product URL
+  useEffect(() => {
+    if (products.length === 0) return
+    const sharedId = getProductIdFromUrl()
+    if (sharedId) {
+      const found = products.find((p) => p.id === sharedId)
+      if (found) {
+        setModalProduct({ product: found, imgIndex: 0 })
+      }
+    }
+  }, [products])
+
+  const handleOpenModal = useCallback((product: Product, imgIndex: number) => {
+    setModalProduct({ product, imgIndex })
+  }, [])
+
+  const handleCloseModal = useCallback(() => {
+    setModalProduct(null)
+    const hash = window.location.hash
+    if (hash.includes('product=')) {
+      const cleanHash = hash.replace(/[?&]product=[^&]+/, '')
+      window.history.replaceState(null, '', `${window.location.pathname}${cleanHash}`)
+    }
+  }, [])
 
   const scrollCarousel = (direction: 'left' | 'right') => {
     if (carouselRef.current) {
@@ -325,7 +351,7 @@ export default function Home() {
                     product={p}
                     index={idx}
                     lang={lang}
-                    onOpenModal={(prod, imgIdx) => setModalProduct({ product: prod, imgIndex: imgIdx })}
+                    onOpenModal={handleOpenModal}
                     className="h-full"
                   />
                 </div>
@@ -341,7 +367,7 @@ export default function Home() {
           product={modalProduct.product}
           initialImgIndex={modalProduct.imgIndex}
           lang={lang}
-          onClose={() => setModalProduct(null)}
+          onClose={handleCloseModal}
         />
       )}
 

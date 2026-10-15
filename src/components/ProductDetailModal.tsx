@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { MessageCircle, X } from 'lucide-react'
+import { MessageCircle, Share2, X } from 'lucide-react'
 import { getProductImages, type Product } from '../types'
 import { WHATSAPP_NUMBER } from '../lib/supabase'
-import { useProductViews } from '../hooks/useProductViews'
+import { recordProductView } from '../hooks/useProductViews'
+import ShareProductModal from './ShareProductModal'
 
 interface ProductDetailModalProps {
   product: Product
@@ -30,13 +31,13 @@ export default function ProductDetailModal({
 }: ProductDetailModalProps) {
   const images = getProductImages(product)
   const [currentIdx, setCurrentIdx] = useState(initialImgIndex)
-  const { recordView } = useProductViews()
+  const [shareOpen, setShareOpen] = useState(false)
   const title = lang === 'es' ? product.title_es : product.title_en
   const desc = lang === 'es' ? product.description_es : product.description_en
   const currentImage = images[currentIdx] || product.image_url
 
   useEffect(() => {
-    recordView(product.id)
+    recordProductView(product.id)
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
@@ -60,7 +61,7 @@ export default function ProductDetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm overflow-y-auto animate-fade-in-up"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-xs overflow-y-auto animate-modal-backdrop"
       onClick={onClose}
     >
       {/* Botón de cierre flotante fijo en la esquina superior de la pantalla (siempre visible en móviles) */}
@@ -76,7 +77,7 @@ export default function ProductDetailModal({
 
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-3xl my-auto max-h-[90vh] flex flex-col rounded-3xl bg-white dark:bg-[#2a2430] border-2 border-pink-100 dark:border-purple-800/40 overflow-hidden shadow-2xl"
+        className="relative w-full max-w-3xl my-auto max-h-[90vh] flex flex-col rounded-3xl bg-white dark:bg-[#2a2430] border-2 border-pink-100 dark:border-purple-800/40 overflow-hidden shadow-2xl animate-modal-content"
       >
         {/* Botón de cierre interno dentro de la tarjeta */}
         <button
@@ -94,8 +95,13 @@ export default function ProductDetailModal({
           <div className="grid grid-cols-1 md:grid-cols-2">
           {/* Photos column */}
           <div className="p-6 bg-pink-50/40 dark:bg-[#1f1b24] flex flex-col justify-center">
-            <div className="relative aspect-square rounded-2xl overflow-hidden mb-3 border border-pink-100 dark:border-purple-800/30 shadow-sm">
-              <img src={currentImage} alt={title} className="w-full h-full object-cover" />
+            <div className="relative aspect-square rounded-2xl overflow-hidden mb-3 border border-pink-100 dark:border-purple-800/30 shadow-sm bg-gray-100 dark:bg-gray-800">
+              <img
+                src={currentImage}
+                alt={title}
+                className="w-full h-full object-cover"
+                decoding="async"
+              />
               {product.badge && (
                 <div
                   className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold font-['Nunito'] shadow-md backdrop-blur-sm ${
@@ -121,7 +127,13 @@ export default function ProductDetailModal({
                         : 'border-transparent opacity-60 hover:opacity-100'
                     }`}
                   >
-                    <img src={img} alt={`Miniatura ${idx + 1}`} className="w-full h-full object-cover" />
+                    <img
+                      src={img}
+                      alt={`Miniatura ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   </button>
                 ))}
               </div>
@@ -144,24 +156,44 @@ export default function ProductDetailModal({
               )}
             </div>
 
-            <div className="pt-4 border-t border-pink-100 dark:border-purple-800/30">
+            <div className="pt-4 border-t border-pink-100 dark:border-purple-800/30 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
               {product.in_stock ? (
                 <button
                   onClick={handleOrder}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-[#25D366] hover:bg-[#20ba59] active:scale-95 text-white font-bold rounded-2xl shadow-lg transition-all font-['Nunito'] text-base"
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-[#25D366] hover:bg-[#20ba59] active:scale-95 text-white font-bold rounded-2xl shadow-lg transition-all font-['Nunito'] text-sm sm:text-base cursor-pointer"
                 >
                   <MessageCircle className="w-5 h-5 fill-current" />
-                  ¡Lo quiero por WhatsApp!
+                  <span>¡Lo quiero por WhatsApp!</span>
                 </button>
               ) : (
-                <div className="w-full py-3 text-center text-sm font-bold text-gray-400 dark:text-gray-500 font-['Nunito'] bg-gray-100 dark:bg-gray-800 rounded-2xl">
-                  Producto Agotado
+                <div className="flex-1 py-3 text-center text-sm font-bold text-gray-400 dark:text-gray-500 font-['Nunito'] bg-gray-100 dark:bg-gray-800 rounded-2xl">
+                  {lang === 'es' ? 'Producto Agotado' : 'Out of Stock'}
                 </div>
               )}
+
+              <button
+                type="button"
+                onClick={() => setShareOpen(true)}
+                className="flex items-center justify-center gap-2 px-5 py-3.5 bg-pink-50 hover:bg-pink-100 dark:bg-purple-900/40 dark:hover:bg-purple-800/60 text-pink-600 dark:text-pink-300 font-bold rounded-2xl border border-pink-200/80 dark:border-purple-700/60 transition-all active:scale-95 font-['Nunito'] text-sm sm:text-base cursor-pointer shadow-sm hover:shadow"
+                title={lang === 'es' ? 'Compartir este producto' : 'Share this product'}
+              >
+                <Share2 className="w-5 h-5" />
+                <span>{lang === 'es' ? 'Compartir' : 'Share'}</span>
+              </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Share Product Modal */}
+      {shareOpen && (
+        <ShareProductModal
+          product={product}
+          lang={lang}
+          isOpen={shareOpen}
+          onClose={() => setShareOpen(false)}
+        />
+      )}
     </div>
   </div>
   )

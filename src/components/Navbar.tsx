@@ -61,7 +61,7 @@ export default function Navbar() {
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-300 rounded-full animate-pulse" />
             </div>
             <span className="font-['Quicksand'] font-bold text-xl text-gradient">
-              MagicAlexa Shop
+              MagicCalexa Shop
             </span>
           </Link>
 

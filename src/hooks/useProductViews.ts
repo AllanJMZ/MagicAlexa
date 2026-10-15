@@ -8,8 +8,44 @@ const EVENT_NAME = 'magic_product_views_updated'
 // Cooldown to prevent duplicate calls from double clicks, modal open + card click, or React StrictMode
 const lastViewTimestamps: Record<string, number> = {}
 
+export function isUserAdmin(): boolean {
+  try {
+    // 1. Explicit flag saved in useAuth / admin
+    if (localStorage.getItem('magic_is_admin') === 'true') {
+      return true
+    }
+
+    // 2. Currently navigating in admin section
+    if (typeof window !== 'undefined' && window.location.hash.startsWith('#/admin')) {
+      return true
+    }
+
+    // 3. Supabase auth token stored in localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+        const item = localStorage.getItem(key)
+        if (item) {
+          const parsed = JSON.parse(item)
+          if (parsed?.user || parsed?.access_token) {
+            return true
+          }
+        }
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return false
+}
+
 export function recordProductView(productId: string) {
   if (!productId) return
+
+  // Do not count views if user is admin
+  if (isUserAdmin()) {
+    return
+  }
 
   const now = Date.now()
   const last = lastViewTimestamps[productId] || 0
@@ -20,6 +56,20 @@ export function recordProductView(productId: string) {
 
   // Process asynchronously after 800ms so it never interferes with opening modal animations
   setTimeout(async () => {
+    // Extra safety check: verify active Supabase admin session
+    try {
+      const { data } = await supabase.auth.getSession()
+      if (data?.session?.user) {
+        return
+      }
+    } catch {
+      // ignore
+    }
+
+    if (isUserAdmin()) {
+      return
+    }
+
     let updatedCount = 1
     try {
       const saved = localStorage.getItem(STORAGE_KEY)

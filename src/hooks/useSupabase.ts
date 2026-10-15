@@ -193,22 +193,51 @@ export function useAuth() {
       setLoading(false)
       return
     }
+
+    const updateAdminFlag = (hasUser: boolean) => {
+      try {
+        if (hasUser) {
+          localStorage.setItem('magic_is_admin', 'true')
+        } else {
+          localStorage.removeItem('magic_is_admin')
+        }
+      } catch {
+        // ignore
+      }
+    }
+
     supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ?? null)
+      const u = data.session?.user ?? null
+      setUser(u)
+      updateAdminFlag(!!u)
       setLoading(false)
     })
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
+      const u = session?.user ?? null
+      setUser(u)
+      updateAdminFlag(!!u)
     })
     return () => listener.subscription.unsubscribe()
   }, [])
 
   const login = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (data?.user) {
+      try {
+        localStorage.setItem('magic_is_admin', 'true')
+      } catch {
+        // ignore
+      }
+    }
     return error
   }
 
   const logout = async () => {
+    try {
+      localStorage.removeItem('magic_is_admin')
+    } catch {
+      // ignore
+    }
     await supabase.auth.signOut()
   }
 

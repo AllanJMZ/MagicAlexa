@@ -62,6 +62,55 @@ export default function Home() {
     }
   }
 
+  // Mouse Drag-to-Scroll for Products Carousel
+  const [isDragging, setIsDragging] = useState(false)
+  const isDownRef = useRef(false)
+  const startXRef = useRef(0)
+  const scrollLeftRef = useRef(0)
+  const hasDraggedRef = useRef(false)
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.button !== 0 || !carouselRef.current) return
+    isDownRef.current = true
+    setIsDragging(true)
+    startXRef.current = e.pageX - carouselRef.current.offsetLeft
+    scrollLeftRef.current = carouselRef.current.scrollLeft
+    hasDraggedRef.current = false
+    carouselRef.current.style.scrollBehavior = 'auto'
+    carouselRef.current.style.scrollSnapType = 'none'
+  }
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDownRef.current || !carouselRef.current) return
+    e.preventDefault()
+    const x = e.pageX - carouselRef.current.offsetLeft
+    const walk = (x - startXRef.current) * 1.2
+    if (Math.abs(x - startXRef.current) > 5) {
+      hasDraggedRef.current = true
+    }
+    carouselRef.current.scrollLeft = scrollLeftRef.current - walk
+  }
+
+  const handleMouseUpOrLeave = () => {
+    if (!isDownRef.current) return
+    isDownRef.current = false
+    setIsDragging(false)
+    if (carouselRef.current) {
+      carouselRef.current.style.scrollBehavior = 'smooth'
+      carouselRef.current.style.scrollSnapType = 'x mandatory'
+    }
+    setTimeout(() => {
+      hasDraggedRef.current = false
+    }, 60)
+  }
+
+  const handleClickCapture = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (hasDraggedRef.current) {
+      e.stopPropagation()
+      e.preventDefault()
+    }
+  }
+
   const lang = i18n.language as 'es' | 'en'
 
   // Local fallback if saved in admin, reactive to updates
@@ -380,8 +429,20 @@ export default function Home() {
             {/* Carousel Container */}
             <div
               ref={carouselRef}
-              className="flex items-stretch gap-4 sm:gap-6 overflow-x-auto pb-4 pt-1 snap-x snap-mandatory scroll-smooth"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUpOrLeave}
+              onMouseLeave={handleMouseUpOrLeave}
+              onClickCapture={handleClickCapture}
+              onDragStart={(e) => e.preventDefault()}
+              className={`flex items-stretch gap-4 sm:gap-6 overflow-x-auto pb-4 pt-1 snap-x snap-mandatory scroll-smooth select-none ${
+                isDragging ? 'cursor-grabbing' : 'cursor-grab'
+              }`}
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch',
+              }}
             >
               {featuredProducts.map((p, idx) => (
                 <div

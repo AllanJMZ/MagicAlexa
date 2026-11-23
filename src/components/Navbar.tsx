@@ -7,7 +7,6 @@ import {
   Globe,
   Menu,
   Moon,
-  ShieldCheck,
   Sun,
   X,
 } from 'lucide-react'
@@ -80,15 +79,6 @@ export default function Navbar() {
                 )}
               </Link>
             ))}
-            <Link
-              to="/admin"
-              className={`px-3 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${isActive('/admin')
-                ? 'text-purple-600 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/30'
-                : 'text-gray-500 dark:text-gray-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-600 dark:hover:text-purple-300'
-                }`}
-            >
-              <ShieldCheck className="w-4 h-4" />
-            </Link>
           </div>
 
           {/* Controls */}

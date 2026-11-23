@@ -19,11 +19,15 @@ export default function Footer() {
           {/* Branding */}
           <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 font-['Nunito']">
             <span>
-              © {year}{' '}
-              <Link to="/admin" className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors" title="Acceso">
-                MagicCalexa Shop
+              © {year} MagicCalexa Shop
+              <Link
+                to="/admin"
+                aria-label="Acceso"
+                className="text-inherit hover:text-inherit cursor-default select-none ml-0.5 focus:outline-none"
+                tabIndex={-1}
+              >
+                .
               </Link>
-              .
             </span>
             <span>{t('footer_rights')}.</span>
           </div>
@@ -65,7 +69,13 @@ export default function Footer() {
           {/* Love note */}
           <div className="flex items-center gap-1 text-sm text-gray-400 dark:text-gray-500 font-['Nunito']">
             <span>{t('footer_made')}</span>
-            <Heart className="w-3.5 h-3.5 text-pink-400 fill-pink-400 animate-pulse" />
+            <Link
+              to="/admin"
+              aria-label="Admin"
+              className="inline-flex items-center focus:outline-none transition-transform hover:scale-125"
+            >
+              <Heart className="w-3.5 h-3.5 text-pink-400 fill-pink-400 animate-pulse" />
+            </Link>
             <span>{t('footer_pusheen')}</span>
           </div>
         </div>

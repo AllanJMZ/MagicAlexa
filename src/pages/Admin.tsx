@@ -38,19 +38,18 @@ type Tab = 'products' | 'bulk' | 'photos' | 'featured' | 'categories' | 'shippin
 export default function Admin() {
   const { t } = useTranslation()
   const { user, loading: authLoading, login, logout } = useAuth()
-  const [pin, setPin] = useState('')
-  const [useEmailLogin, setUseEmailLogin] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [tab, setTab] = useState<Tab>('products')
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoginError('')
-    const error = useEmailLogin
-      ? await login(email, password)
-      : await login(pin)
+    setIsSubmitting(true)
+    const error = await login(email, password)
+    setIsSubmitting(false)
     if (error) setLoginError(error.message)
   }
 
@@ -78,54 +77,34 @@ export default function Admin() {
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
-              {!useEmailLogin ? (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 font-['Nunito'] mb-1">
-                    PIN o Contraseña Maestra
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="password"
-                      placeholder="Ingresa tu PIN (ej: admin123)"
-                      value={pin}
-                      onChange={(e) => setPin(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#16131a] border border-gray-200 dark:border-neutral-700 focus:border-pink-400 focus:ring-2 focus:ring-pink-200 outline-none text-sm font-['Nunito'] text-gray-800 dark:text-gray-100"
-                      autoFocus
-                      required
-                    />
-                  </div>
-                  <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1.5 font-['Nunito']">
-                    PIN rápido por defecto: <code className="font-mono text-pink-500 font-bold">admin123</code>
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 font-['Nunito'] mb-1">
-                      Correo Electrónico
-                    </label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#16131a] border border-gray-200 dark:border-neutral-700 focus:border-pink-400 focus:ring-2 focus:ring-pink-200 outline-none text-sm font-['Nunito'] text-gray-800 dark:text-gray-100"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 font-['Nunito'] mb-1">
-                      Contraseña de Supabase
-                    </label>
-                    <input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#16131a] border border-gray-200 dark:border-neutral-700 focus:border-pink-400 focus:ring-2 focus:ring-pink-200 outline-none text-sm font-['Nunito'] text-gray-800 dark:text-gray-100"
-                      required
-                    />
-                  </div>
-                </>
-              )}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 font-['Nunito'] mb-1">
+                  Correo Electrónico
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@ejemplo.com"
+                  className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#16131a] border border-gray-200 dark:border-neutral-700 focus:border-pink-400 focus:ring-2 focus:ring-pink-200 outline-none text-sm font-['Nunito'] text-gray-800 dark:text-gray-100 transition-all"
+                  autoFocus
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 font-['Nunito'] mb-1">
+                  Contraseña
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#16131a] border border-gray-200 dark:border-neutral-700 focus:border-pink-400 focus:ring-2 focus:ring-pink-200 outline-none text-sm font-['Nunito'] text-gray-800 dark:text-gray-100 transition-all"
+                  required
+                />
+              </div>
 
               {loginError && (
                 <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30">
@@ -135,25 +114,13 @@ export default function Admin() {
 
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all font-['Nunito'] text-sm"
+                disabled={isSubmitting}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all font-['Nunito'] text-sm disabled:opacity-50"
               >
                 <LogIn className="w-4 h-4" />
-                Ingresar al Panel
+                {isSubmitting ? 'Iniciando sesión...' : 'Iniciar Sesión'}
               </button>
             </form>
-
-            <div className="mt-5 text-center">
-              <button
-                type="button"
-                onClick={() => {
-                  setUseEmailLogin(!useEmailLogin)
-                  setLoginError('')
-                }}
-                className="text-xs text-pink-600 dark:text-pink-400 hover:underline font-['Nunito'] font-medium"
-              >
-                {useEmailLogin ? '← O ingresar con PIN rápido' : 'O ingresar con correo de Supabase →'}
-              </button>
-            </div>
           </div>
         </div>
       </div>

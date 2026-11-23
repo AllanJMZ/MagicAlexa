@@ -266,17 +266,17 @@ export function useAuth() {
     const pass = password ? password.trim() : ''
     const SIMPLE_PINS = ['admin123', 'admin', 'pusheen2026', 'magic2026']
 
-    // 1. Ingreso ultra sencillo con PIN maestro / contraseña maestra
+    // 1. Ingreso con PIN maestro / contraseña maestra de emergencia
     if (SIMPLE_PINS.includes(trimmed) || SIMPLE_PINS.includes(pass)) {
       try {
         localStorage.setItem('magic_is_admin', 'true')
       } catch {}
-      setUser({ id: 'local_admin', email: 'admin@magiccalexa.com' })
+      setUser({ id: 'local_admin', email: trimmed.includes('@') ? trimmed : 'admin@magiccalexa.com' })
       return null
     }
 
-    // 2. Ingreso con Supabase Auth si proporcionó correo y contraseña
-    if (trimmed.includes('@') && pass) {
+    // 2. Ingreso con credenciales de Supabase Auth
+    if (trimmed && pass) {
       const { data, error } = await supabase.auth.signInWithPassword({ email: trimmed, password: pass })
       if (data?.user) {
         try {
@@ -285,10 +285,10 @@ export function useAuth() {
         setUser({ id: data.user.id, email: data.user.email })
         return null
       }
-      return error
+      return { message: error?.message || 'Correo o contraseña incorrectos. Verifica tus credenciales.' }
     }
 
-    return { message: 'PIN o contraseña incorrecta. Puedes usar el PIN rápido: admin123' }
+    return { message: 'Por favor ingresa tu correo y contraseña.' }
   }
 
   const logout = async () => {

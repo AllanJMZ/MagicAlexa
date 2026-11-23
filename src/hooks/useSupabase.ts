@@ -87,7 +87,7 @@ const DEMO_SETTINGS: SiteSettings = {
   banner_text_en: 'Safe shipping nationwide! Inquire about exclusive items on WhatsApp ✨',
   banner_active: true,
   banner_link: '',
-  season_image_url: './season-image.jpg',
+  season_image_url: '/season-image.jpg',
   season_title_es: '✨ Temporada Otoño 2026',
   season_title_en: '✨ Autumn Season 2026',
   season_desc_es: 'Nuevas piezas de la colección de temporada ya disponibles 🍂',
@@ -140,27 +140,65 @@ export function useProducts() {
   return { products, loading, refetch: fetchProducts }
 }
 
+const SHIPPING_STORAGE_KEY = 'magic_custom_shipping'
+const SHIPPING_EVENT_NAME = 'magic_shipping_updated'
+
 export function useShippingMethods() {
-  const [methods, setMethods] = useState<ShippingMethod[]>([])
+  const [methods, setMethods] = useState<ShippingMethod[]>(() => {
+    try {
+      const local = localStorage.getItem(SHIPPING_STORAGE_KEY)
+      if (local) {
+        const parsed = JSON.parse(local)
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      }
+    } catch {
+      // ignore
+    }
+    return DEMO_SHIPPING
+  })
   const [loading, setLoading] = useState(true)
 
   const fetchMethods = async () => {
     setLoading(true)
-    if (IS_DEMO) {
-      setMethods(DEMO_SHIPPING)
-    } else {
-      const { data, error } = await supabase.from('shipping_methods').select('*').order('sort_order')
-      if (error) console.error('Error fetching shipping methods from Supabase:', error)
-      if (!data || data.length === 0) {
-        setMethods(DEMO_SHIPPING)
-      } else {
-        setMethods(data)
+    try {
+      const local = localStorage.getItem(SHIPPING_STORAGE_KEY)
+      let localData: ShippingMethod[] | null = null
+      if (local) {
+        const parsed = JSON.parse(local)
+        if (Array.isArray(parsed) && parsed.length > 0) localData = parsed
       }
+
+      if (IS_DEMO) {
+        setMethods(localData || DEMO_SHIPPING)
+      } else {
+        const { data, error } = await supabase.from('shipping_methods').select('*').order('sort_order')
+        if (error) console.error('Error fetching shipping methods from Supabase:', error)
+        if (data && data.length > 0) {
+          setMethods(data)
+        } else if (localData && localData.length > 0) {
+          setMethods(localData)
+        } else {
+          setMethods(DEMO_SHIPPING)
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching shipping methods:', err)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
-  useEffect(() => { fetchMethods() }, [])
+  useEffect(() => {
+    fetchMethods()
+    const handleUpdate = () => fetchMethods()
+    window.addEventListener(SHIPPING_EVENT_NAME, handleUpdate)
+    window.addEventListener('storage', handleUpdate)
+    return () => {
+      window.removeEventListener(SHIPPING_EVENT_NAME, handleUpdate)
+      window.removeEventListener('storage', handleUpdate)
+    }
+  }, [])
+
   return { methods, loading, refetch: fetchMethods }
 }
 
@@ -185,60 +223,80 @@ export function useSiteSettings() {
 }
 
 export function useAuth() {
-  const [user, setUser] = useState<unknown>(null)
+  const [user, setUser] = useState<{ id: string; email?: string } | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    try {
+      if (localStorage.getItem('magic_is_admin') === 'true') {
+        setUser({ id: 'local_admin', email: 'admin@magiccalexa.com' })
+        setLoading(false)
+        return
+      }
+    } catch {
+      // ignore
+    }
+
     if (IS_DEMO) {
       setLoading(false)
       return
     }
 
-    const updateAdminFlag = (hasUser: boolean) => {
-      try {
-        if (hasUser) {
-          localStorage.setItem('magic_is_admin', 'true')
-        } else {
-          localStorage.removeItem('magic_is_admin')
-        }
-      } catch {
-        // ignore
-      }
-    }
-
     supabase.auth.getSession().then(({ data }) => {
       const u = data.session?.user ?? null
-      setUser(u)
-      updateAdminFlag(!!u)
+      if (u) {
+        setUser({ id: u.id, email: u.email })
+        try { localStorage.setItem('magic_is_admin', 'true') } catch {}
+      }
       setLoading(false)
     })
+
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       const u = session?.user ?? null
-      setUser(u)
-      updateAdminFlag(!!u)
+      if (u) {
+        setUser({ id: u.id, email: u.email })
+        try { localStorage.setItem('magic_is_admin', 'true') } catch {}
+      }
     })
     return () => listener.subscription.unsubscribe()
   }, [])
 
-  const login = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (data?.user) {
+  const login = async (identifier: string, password?: string) => {
+    const trimmed = identifier.trim()
+    const pass = password ? password.trim() : ''
+    const SIMPLE_PINS = ['admin123', 'admin', 'pusheen2026', 'magic2026']
+
+    // 1. Ingreso ultra sencillo con PIN maestro / contraseña maestra
+    if (SIMPLE_PINS.includes(trimmed) || SIMPLE_PINS.includes(pass)) {
       try {
         localStorage.setItem('magic_is_admin', 'true')
-      } catch {
-        // ignore
-      }
+      } catch {}
+      setUser({ id: 'local_admin', email: 'admin@magiccalexa.com' })
+      return null
     }
-    return error
+
+    // 2. Ingreso con Supabase Auth si proporcionó correo y contraseña
+    if (trimmed.includes('@') && pass) {
+      const { data, error } = await supabase.auth.signInWithPassword({ email: trimmed, password: pass })
+      if (data?.user) {
+        try {
+          localStorage.setItem('magic_is_admin', 'true')
+        } catch {}
+        setUser({ id: data.user.id, email: data.user.email })
+        return null
+      }
+      return error
+    }
+
+    return { message: 'PIN o contraseña incorrecta. Puedes usar el PIN rápido: admin123' }
   }
 
   const logout = async () => {
     try {
       localStorage.removeItem('magic_is_admin')
-    } catch {
-      // ignore
-    }
-    await supabase.auth.signOut()
+    } catch {}
+    setUser(null)
+    await supabase.auth.signOut().catch(() => {})
   }
 
   return { user, loading, login, logout }

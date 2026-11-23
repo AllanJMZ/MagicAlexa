@@ -5,6 +5,7 @@ import { ArrowRight, ChevronLeft, ChevronRight, Heart, Package, ShieldCheck, Spa
 import { useReveal, useMounted } from '../hooks/useAnimations'
 import { useProducts, useSiteSettings } from '../hooks/useSupabase'
 import { useFeaturedProducts } from '../hooks/useFeaturedProducts'
+import { useTheme } from '../context/ThemeContext'
 import type { Product } from '../types'
 import AnimatedStar from '../components/AnimatedStar'
 import ProductCard from '../components/ProductCard'
@@ -17,6 +18,8 @@ export default function Home() {
   const mounted = useMounted()
   const { products } = useProducts()
   const { settings } = useSiteSettings()
+  const { theme } = useTheme()
+  const isDarkBackground = theme === 'dark'
   const { getFeaturedProducts } = useFeaturedProducts()
   const featuredProducts = getFeaturedProducts(products)
   const [modalProduct, setModalProduct] = useState<{ product: Product; imgIndex: number } | null>(null)
@@ -59,22 +62,57 @@ export default function Home() {
 
   const lang = i18n.language as 'es' | 'en'
 
-  // Local fallback if saved in admin
-  const localSeasonal = (() => {
+  // Local fallback if saved in admin, reactive to updates
+  const [localSeasonal, setLocalSeasonal] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('magic_season_settings') || '{}')
     } catch {
       return {}
     }
-  })()
+  })
 
-  const seasonImage = settings?.season_image_url || localSeasonal.season_image_url || './season-image.jpg'
-  const seasonTitle = (lang === 'en' ? settings?.season_title_en : settings?.season_title_es)
-    || (lang === 'en' ? localSeasonal.season_title_en : localSeasonal.season_title_es)
-    || (lang === 'es' ? '✨ Temporada Otoño 2026' : '✨ Autumn Season 2026')
-  const seasonDesc = (lang === 'en' ? settings?.season_desc_en : settings?.season_desc_es)
-    || (lang === 'en' ? localSeasonal.season_desc_en : localSeasonal.season_desc_es)
-    || (lang === 'es' ? 'Nuevas piezas de la colección de temporada ya disponibles 🍂' : 'New seasonal collection pieces now available 🍂')
+  useEffect(() => {
+    const handleUpdate = () => {
+      try {
+        setLocalSeasonal(JSON.parse(localStorage.getItem('magic_season_settings') || '{}'))
+      } catch {
+        // ignore
+      }
+    }
+    window.addEventListener('magic_season_updated', handleUpdate)
+    window.addEventListener('storage', handleUpdate)
+    return () => {
+      window.removeEventListener('magic_season_updated', handleUpdate)
+      window.removeEventListener('storage', handleUpdate)
+    }
+  }, [])
+
+  const seasonImage = localSeasonal.season_image_url || settings?.season_image_url || '/season-image.jpg'
+  
+  const seasonTextActive = localSeasonal.season_text_active ?? (
+    localSeasonal.season_title_es !== undefined || localSeasonal.season_desc_es !== undefined
+      ? Boolean(localSeasonal.season_title_es?.trim() || localSeasonal.season_desc_es?.trim())
+      : Boolean(settings?.season_title_es?.trim() || settings?.season_desc_es?.trim())
+  )
+
+  const rawTitle = lang === 'en'
+    ? (localSeasonal.season_title_en !== undefined ? localSeasonal.season_title_en : settings?.season_title_en)
+    : (localSeasonal.season_title_es !== undefined ? localSeasonal.season_title_es : settings?.season_title_es)
+
+  const rawDesc = lang === 'en'
+    ? (localSeasonal.season_desc_en !== undefined ? localSeasonal.season_desc_en : settings?.season_desc_en)
+    : (localSeasonal.season_desc_es !== undefined ? localSeasonal.season_desc_es : settings?.season_desc_es)
+
+  const hasExplicitConfig = Boolean(localSeasonal.updated_at || settings?.id)
+  const seasonTitle = rawTitle !== undefined
+    ? rawTitle
+    : (hasExplicitConfig ? '' : (lang === 'es' ? '✨ Temporada 2026' : '✨ Season 2026'))
+
+  const seasonDesc = rawDesc !== undefined
+    ? rawDesc
+    : (hasExplicitConfig ? '' : (lang === 'es' ? 'Nuevas piezas de la colección de temporada ya disponibles 🍂' : 'New seasonal collection pieces now available 🍂'))
+
+  const showSeasonText = Boolean(seasonTextActive && (seasonTitle?.trim() || seasonDesc?.trim()))
 
   const featuresReveal = useReveal(0.1)
   const ctaReveal = useReveal(0.15)
@@ -172,7 +210,7 @@ export default function Home() {
                 }`}
                 style={{ transitionDelay: '400ms' }}
               >
-                <span className="text-gradient">
+                <span className={isDarkBackground ? 'hero-title-dark-bg' : 'hero-title-light-bg'}>
                   {t('hero_title')}
                 </span>
               </h1>
@@ -242,38 +280,46 @@ export default function Home() {
                     alt="Decoración de temporada"
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
-                  {/* Gradients */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-purple-950/90 via-pink-950/30 to-transparent" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-transparent" />
 
-                  {/* Floating stars on the card */}
-                  <div className="absolute top-6 right-6 animate-float">
-                    <Star className="w-5 h-5 text-yellow-300 fill-yellow-300 opacity-90 drop-shadow-md" />
-                  </div>
-                  <div className="absolute top-16 left-8 animate-float-delayed">
-                    <Star className="w-4 h-4 text-pink-300 fill-pink-300 opacity-80 drop-shadow-md" />
-                  </div>
-                  <div className="absolute top-28 right-12 animate-float">
-                    <Sparkles className="w-4 h-4 text-yellow-200 opacity-70" />
-                  </div>
+                  {showSeasonText && (
+                    <>
+                      {/* Degradado inferior suave únicamente si hay texto */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent pointer-events-none" />
 
-                  {/* Card footer description */}
-                  <div className="relative z-10 p-6 sm:p-8 text-white">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white mb-3 shadow-sm">
-                      <Sparkles className="w-3.5 h-3.5 text-yellow-300 animate-pulse" />
-                      <span className="text-xs font-bold font-['Nunito'] uppercase tracking-wider text-pink-100">
-                        {seasonTitle}
-                      </span>
-                    </div>
+                      {/* Floating stars on the card */}
+                      <div className="absolute top-6 right-6 animate-float">
+                        <Star className="w-5 h-5 text-yellow-300 fill-yellow-300 opacity-90 drop-shadow-md" />
+                      </div>
+                      <div className="absolute top-16 left-8 animate-float-delayed">
+                        <Star className="w-4 h-4 text-pink-300 fill-pink-300 opacity-80 drop-shadow-md" />
+                      </div>
+                      <div className="absolute top-28 right-12 animate-float">
+                        <Sparkles className="w-4 h-4 text-yellow-200 opacity-70" />
+                      </div>
 
-                    <h3 className="text-xl sm:text-2xl font-bold font-['Quicksand'] mb-2 text-white drop-shadow">
-                      {lang === 'es' ? 'Colección de Temporada' : 'Seasonal Collection'}
-                    </h3>
+                      {/* Card footer description */}
+                      <div className="relative z-10 p-5 sm:p-6 text-white">
+                        {seasonTitle?.trim() && (
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white mb-2 shadow-sm">
+                            <Sparkles className="w-3 h-3 text-yellow-300 animate-pulse" />
+                            <span className="text-[11px] sm:text-xs font-bold font-['Nunito'] uppercase tracking-wider text-pink-100">
+                              {seasonTitle}
+                            </span>
+                          </div>
+                        )}
 
-                    <p className="text-sm font-['Nunito'] text-white/90 leading-relaxed drop-shadow">
-                      {seasonDesc}
-                    </p>
-                  </div>
+                        <h3 className="text-base sm:text-lg font-bold font-['Quicksand'] mb-1 text-white drop-shadow-sm">
+                          {lang === 'es' ? 'Colección de Temporada' : 'Seasonal Collection'}
+                        </h3>
+
+                        {seasonDesc?.trim() && (
+                          <p className="text-xs sm:text-sm font-['Nunito'] text-white/90 leading-relaxed drop-shadow-xs">
+                            {seasonDesc}
+                          </p>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

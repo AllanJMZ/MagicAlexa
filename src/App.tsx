@@ -21,8 +21,23 @@ function AnimatedRoutes() {
         <Route path="/catalog" element={<Catalog />} />
         <Route path="/shipping" element={<Shipping />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/login" element={<Admin />} />
       </Routes>
     </main>
+  )
+}
+
+function MainLayout() {
+  return (
+    <div className="flex flex-col min-h-screen text-gray-800 dark:text-gray-100 transition-colors duration-300 relative">
+      <SiteBackground />
+      <ScrollProgress />
+      <Navbar />
+      <Banner />
+      <AnimatedRoutes />
+      <Footer />
+      <ScrollToTop />
+    </div>
   )
 }
 
@@ -30,15 +45,7 @@ export default function App() {
   return (
     <ThemeProvider>
       <HashRouter>
-        <div className="flex flex-col min-h-screen text-gray-800 dark:text-gray-100 transition-colors duration-300 relative">
-          <SiteBackground />
-          <ScrollProgress />
-          <Navbar />
-          <Banner />
-          <AnimatedRoutes />
-          <Footer />
-          <ScrollToTop />
-        </div>
+        <MainLayout />
       </HashRouter>
     </ThemeProvider>
   )

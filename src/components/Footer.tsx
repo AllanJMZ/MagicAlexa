@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import { Heart } from 'lucide-react'
 import { FacebookIcon, InstagramIcon, WhatsAppIcon, SOCIAL_LINKS } from './SocialIcons'
 import { useReveal } from '../hooks/useAnimations'
@@ -9,10 +10,7 @@ export default function Footer() {
   const reveal = useReveal(0.1)
 
   return (
-    <footer className="relative mt-auto bg-gradient-to-t from-pink-50 via-white to-transparent dark:from-[#1a1520] dark:via-[#1F1B24] dark:to-transparent border-t border-pink-100/50 dark:border-purple-900/30">
-      {/* Decorative wave */}
-      <div className="absolute -top-px inset-x-0 h-px bg-gradient-to-r from-transparent via-pink-300 dark:via-purple-500 to-transparent" />
-
+    <footer className="relative mt-auto bg-white dark:bg-[#121214] border-t border-gray-200 dark:border-neutral-800 text-gray-600 dark:text-gray-300">
       <div
         ref={reveal.ref}
         className={`max-w-7xl mx-auto px-4 py-8 sm:py-10 reveal ${reveal.revealed ? 'revealed' : ''}`}
@@ -20,7 +18,13 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           {/* Branding */}
           <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 font-['Nunito']">
-            <span>© {year} MagicCalexa Shop.</span>
+            <span>
+              © {year}{' '}
+              <Link to="/admin" className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors" title="Acceso">
+                MagicCalexa Shop
+              </Link>
+              .
+            </span>
             <span>{t('footer_rights')}.</span>
           </div>
 
@@ -30,7 +34,7 @@ export default function Footer() {
               href={SOCIAL_LINKS.facebook}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2.5 rounded-full bg-white dark:bg-[#2a2430] shadow-sm border border-pink-100 dark:border-purple-800/50 text-gray-500 dark:text-gray-400 hover:text-blue-500 hover:border-blue-200 dark:hover:border-blue-800/50 hover:shadow-md hover:scale-110 transition-all duration-300"
+              className="p-2.5 rounded-full bg-gray-50 dark:bg-neutral-800 shadow-sm border border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-gray-300 hover:text-blue-500 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md hover:scale-110 transition-all duration-300"
               aria-label="Facebook"
               title="Facebook @MagicCalexaBolishop"
             >
@@ -40,7 +44,7 @@ export default function Footer() {
               href={SOCIAL_LINKS.instagram}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2.5 rounded-full bg-white dark:bg-[#2a2430] shadow-sm border border-pink-100 dark:border-purple-800/50 text-gray-500 dark:text-gray-400 hover:text-pink-500 hover:border-pink-200 dark:hover:border-pink-800/50 hover:shadow-md hover:scale-110 transition-all duration-300"
+              className="p-2.5 rounded-full bg-gray-50 dark:bg-neutral-800 shadow-sm border border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-gray-300 hover:text-pink-500 hover:border-pink-300 dark:hover:border-pink-700 hover:shadow-md hover:scale-110 transition-all duration-300"
               aria-label="Instagram"
               title="Instagram @magiccalexa_bolishop"
             >
@@ -50,7 +54,7 @@ export default function Footer() {
               href={SOCIAL_LINKS.whatsappGroup}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2.5 rounded-full bg-white dark:bg-[#2a2430] shadow-sm border border-pink-100 dark:border-purple-800/50 text-gray-500 dark:text-gray-400 hover:text-green-500 hover:border-green-200 dark:hover:border-green-800/50 hover:shadow-md hover:scale-110 transition-all duration-300"
+              className="p-2.5 rounded-full bg-gray-50 dark:bg-neutral-800 shadow-sm border border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-gray-300 hover:text-green-500 hover:border-green-300 dark:hover:border-green-700 hover:shadow-md hover:scale-110 transition-all duration-300"
               aria-label="Comunidad WhatsApp"
               title="Comunidad en WhatsApp"
             >

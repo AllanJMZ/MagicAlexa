@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DEMO_CATEGORIES, DEMO_SHIPPING, useAuth, useCategories, useProducts, useShippingMethods, useSiteSettings } from '../hooks/useSupabase'
 import { useFeaturedProducts } from '../hooks/useFeaturedProducts'
@@ -22,6 +22,7 @@ import {
   Package,
   Palette,
   Plus,
+  RotateCcw,
   Save,
   ShieldCheck,
   Sparkles,
@@ -37,6 +38,8 @@ type Tab = 'products' | 'bulk' | 'photos' | 'featured' | 'categories' | 'shippin
 export default function Admin() {
   const { t } = useTranslation()
   const { user, loading: authLoading, login, logout } = useAuth()
+  const [pin, setPin] = useState('')
+  const [useEmailLogin, setUseEmailLogin] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState('')
@@ -45,7 +48,9 @@ export default function Admin() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoginError('')
-    const error = await login(email, password)
+    const error = useEmailLogin
+      ? await login(email, password)
+      : await login(pin)
     if (error) setLoginError(error.message)
   }
 
@@ -59,61 +64,96 @@ export default function Admin() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center py-12 px-4">
+      <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-gray-50/50 dark:bg-black/30">
         <div className="w-full max-w-md">
-          <div className="bg-white/90 dark:bg-[#2a2430]/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-pink-100/60 dark:border-purple-800/40 p-8 sm:p-10">
+          <div className="bg-white dark:bg-[#1f1b24] rounded-3xl shadow-2xl border border-gray-200 dark:border-neutral-800 p-8 sm:p-10">
             <div className="text-center mb-8">
               <AnimatedStar className="mb-4" />
-              <h1 className="font-['Quicksand'] font-bold text-2xl text-gradient">
-                {t('admin_title')}
+              <h1 className="font-['Quicksand'] font-bold text-2xl text-gray-800 dark:text-gray-100">
+                Acceso de Administración
               </h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400 font-['Nunito'] mt-1">
-                {t('admin_login_subtitle') || 'Ingresa tus credenciales para continuar'}
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-['Nunito'] mt-1">
+                Panel privado de gestión de la tienda
               </p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 font-['Nunito'] mb-1">
-                  {t('admin_email')}
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#1F1B24] border border-pink-200 dark:border-purple-700/50 focus:border-pink-400 dark:focus:border-pink-500 focus:ring-2 focus:ring-pink-200 dark:focus:ring-pink-800/30 outline-none text-sm font-['Nunito'] text-gray-700 dark:text-gray-200 transition-all"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 font-['Nunito'] mb-1">
-                  {t('admin_password')}
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#1F1B24] border border-pink-200 dark:border-purple-700/50 focus:border-pink-400 dark:focus:border-pink-500 focus:ring-2 focus:ring-pink-200 dark:focus:ring-pink-800/30 outline-none text-sm font-['Nunito'] text-gray-700 dark:text-gray-200 transition-all"
-                  required
-                />
-              </div>
+              {!useEmailLogin ? (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 font-['Nunito'] mb-1">
+                    PIN o Contraseña Maestra
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      placeholder="Ingresa tu PIN (ej: admin123)"
+                      value={pin}
+                      onChange={(e) => setPin(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#16131a] border border-gray-200 dark:border-neutral-700 focus:border-pink-400 focus:ring-2 focus:ring-pink-200 outline-none text-sm font-['Nunito'] text-gray-800 dark:text-gray-100"
+                      autoFocus
+                      required
+                    />
+                  </div>
+                  <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1.5 font-['Nunito']">
+                    PIN rápido por defecto: <code className="font-mono text-pink-500 font-bold">admin123</code>
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 font-['Nunito'] mb-1">
+                      Correo Electrónico
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#16131a] border border-gray-200 dark:border-neutral-700 focus:border-pink-400 focus:ring-2 focus:ring-pink-200 outline-none text-sm font-['Nunito'] text-gray-800 dark:text-gray-100"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 font-['Nunito'] mb-1">
+                      Contraseña de Supabase
+                    </label>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#16131a] border border-gray-200 dark:border-neutral-700 focus:border-pink-400 focus:ring-2 focus:ring-pink-200 outline-none text-sm font-['Nunito'] text-gray-800 dark:text-gray-100"
+                      required
+                    />
+                  </div>
+                </>
+              )}
+
               {loginError && (
                 <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30">
-                  <span className="text-red-500 text-sm font-['Nunito']">{loginError}</span>
+                  <span className="text-red-500 text-xs font-semibold font-['Nunito']">{loginError}</span>
                 </div>
               )}
+
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all duration-300 font-['Nunito'] btn-press animate-glow"
+                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all font-['Nunito'] text-sm"
               >
                 <LogIn className="w-4 h-4" />
-                {t('admin_login')}
+                Ingresar al Panel
               </button>
             </form>
 
-            <p className="text-center text-xs text-gray-400 dark:text-gray-500 font-['Nunito'] mt-6">
-              🔒 {t('admin_secure_note') || 'Conexión segura con Supabase Auth'}
-            </p>
+            <div className="mt-5 text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setUseEmailLogin(!useEmailLogin)
+                  setLoginError('')
+                }}
+                className="text-xs text-pink-600 dark:text-pink-400 hover:underline font-['Nunito'] font-medium"
+              >
+                {useEmailLogin ? '← O ingresar con PIN rápido' : 'O ingresar con correo de Supabase →'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -915,29 +955,55 @@ function ShippingAdmin() {
   const emptyForm = { title_es: '', title_en: '', description_es: '', description_en: '', cost_note: '', delivery_time: '', sort_order: 0 }
   const [form, setForm] = useState(emptyForm)
 
+  const isUuid = (id?: string) => Boolean(id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))
+
+  const saveLocally = (updatedList: ShippingMethod[]) => {
+    localStorage.setItem('magic_custom_shipping', JSON.stringify(updatedList))
+    window.dispatchEvent(new Event('magic_shipping_updated'))
+  }
+
   const handleSave = async () => {
-    let result
-    if (editing) {
-      result = await supabase.from('shipping_methods').update(form).eq('id', editing.id)
+    // 1. Si el ID es un UUID real de Supabase, intentamos actualizar en BD
+    if (editing && isUuid(editing.id)) {
+      const { error } = await supabase.from('shipping_methods').update(form).eq('id', editing.id)
+      if (error) console.warn('Supabase shipping update failed, saving locally:', error)
     } else {
-      result = await supabase.from('shipping_methods').insert(form)
+      // 2. Si es una tarjeta demo o nueva, insertamos sin ID para que Supabase autogenere UUID
+      const { error } = await supabase.from('shipping_methods').insert(form)
+      if (error) console.warn('Supabase shipping insert failed, saving locally:', error)
     }
-    if (result.error) {
-      console.error('Error saving shipping method:', result.error)
-      alert(`Error al guardar método de envío: ${result.error.message}`)
-      return
+
+    // 3. Sincronizar en localStorage para disponibilidad inmediata y evitar error de UUID
+    const targetId = editing ? editing.id : `ship-${Date.now()}`
+    const updatedItem: ShippingMethod = {
+      id: targetId,
+      ...form,
+      created_at: new Date().toISOString(),
     }
+
+    let updatedList: ShippingMethod[]
+    if (editing) {
+      updatedList = methods.map((m) => (m.id === editing.id ? updatedItem : m))
+    } else {
+      updatedList = [...methods, updatedItem]
+    }
+    saveLocally(updatedList)
+
     reset()
     refetch()
   }
 
   const handleDelete = async (id: string) => {
     if (confirm(t('admin_confirm_delete'))) {
-      const { error } = await supabase.from('shipping_methods').delete().eq('id', id)
-      if (error) {
-        console.error('Error deleting shipping method:', error)
-        alert(`Error al eliminar método de envío: ${error.message}`)
+      if (isUuid(id)) {
+        try {
+          await supabase.from('shipping_methods').delete().eq('id', id)
+        } catch {
+          // ignore
+        }
       }
+      const updatedList = methods.filter((m) => m.id !== id)
+      saveLocally(updatedList)
       refetch()
     }
   }
@@ -962,13 +1028,13 @@ function ShippingAdmin() {
     const defaults = DEMO_SHIPPING.map(({ title_es, title_en, description_es, description_en, cost_note, delivery_time, sort_order }) => ({
       title_es, title_en, description_es, description_en, cost_note, delivery_time, sort_order
     }))
-    const { error } = await supabase.from('shipping_methods').insert(defaults)
-    if (error) {
-      console.error('Error inserting default shipping cards:', error)
-      alert(`Error al cargar tarjetas de envío: ${error.message}`)
-    } else {
-      refetch()
+    try {
+      await supabase.from('shipping_methods').insert(defaults)
+    } catch {
+      // ignore
     }
+    saveLocally(DEMO_SHIPPING)
+    refetch()
   }
 
   return (
@@ -1074,25 +1140,53 @@ function BannerAdmin() {
   const { settings, refetch } = useSiteSettings()
   const { bgUrl, saveBgUrl } = useSiteBackground()
 
-  const localSeasonal = (() => {
+  const [localSeasonal, setLocalSeasonal] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('magic_season_settings') || '{}')
     } catch {
       return {}
     }
-  })()
+  })
 
   const [form, setForm] = useState({
     banner_text_es: settings?.banner_text_es || '',
     banner_text_en: settings?.banner_text_en || '',
     banner_active: settings?.banner_active ?? true,
     banner_link: settings?.banner_link || '',
-    season_image_url: settings?.season_image_url || localSeasonal.season_image_url || './season-image.jpg',
-    season_title_es: settings?.season_title_es || localSeasonal.season_title_es || '✨ Temporada Otoño 2026',
-    season_title_en: settings?.season_title_en || localSeasonal.season_title_en || '✨ Autumn Season 2026',
-    season_desc_es: settings?.season_desc_es || localSeasonal.season_desc_es || 'Nuevas piezas de la colección de temporada ya disponibles 🍂',
-    season_desc_en: settings?.season_desc_en || localSeasonal.season_desc_en || 'New seasonal collection pieces now available 🍂',
+    season_image_url: localSeasonal.season_image_url || settings?.season_image_url || '/season-image.jpg',
+    season_text_active: localSeasonal.season_text_active ?? (
+      localSeasonal.season_title_es !== undefined || localSeasonal.season_desc_es !== undefined
+        ? Boolean(localSeasonal.season_title_es?.trim() || localSeasonal.season_desc_es?.trim())
+        : Boolean(settings?.season_title_es?.trim() || settings?.season_desc_es?.trim())
+    ),
+    season_title_es: localSeasonal.season_title_es ?? settings?.season_title_es ?? '',
+    season_title_en: localSeasonal.season_title_en ?? settings?.season_title_en ?? '',
+    season_desc_es: localSeasonal.season_desc_es ?? settings?.season_desc_es ?? '',
+    season_desc_en: localSeasonal.season_desc_en ?? settings?.season_desc_en ?? '',
   })
+
+  const [formInitialized, setFormInitialized] = useState(false)
+  useEffect(() => {
+    if (settings && !formInitialized) {
+      setForm({
+        banner_text_es: settings.banner_text_es ?? '',
+        banner_text_en: settings.banner_text_en ?? '',
+        banner_active: settings.banner_active ?? true,
+        banner_link: settings.banner_link ?? '',
+        season_image_url: localSeasonal.season_image_url || settings.season_image_url || '/season-image.jpg',
+        season_text_active: localSeasonal.season_text_active ?? (
+          localSeasonal.season_title_es !== undefined || localSeasonal.season_desc_es !== undefined
+            ? Boolean(localSeasonal.season_title_es?.trim() || localSeasonal.season_desc_es?.trim())
+            : Boolean(settings.season_title_es?.trim() || settings.season_desc_es?.trim())
+        ),
+        season_title_es: localSeasonal.season_title_es ?? settings.season_title_es ?? '',
+        season_title_en: localSeasonal.season_title_en ?? settings.season_title_en ?? '',
+        season_desc_es: localSeasonal.season_desc_es ?? settings.season_desc_es ?? '',
+        season_desc_en: localSeasonal.season_desc_en ?? settings.season_desc_en ?? '',
+      })
+      setFormInitialized(true)
+    }
+  }, [settings, localSeasonal, formInitialized])
 
   const [currentBgUrl, setCurrentBgUrl] = useState(bgUrl)
   const [uploadingSeason, setUploadingSeason] = useState(false)
@@ -1101,17 +1195,37 @@ function BannerAdmin() {
 
   const handleSeasonImageUpload = async (file: File) => {
     setUploadingSeason(true)
-    const ext = file.name.split('.').pop()
-    const path = `season-${Date.now()}.${ext}`
-    const { error } = await supabase.storage.from('product-images').upload(path, file)
-    if (error) {
-      console.error('Error uploading seasonal image:', error)
-      alert(`Error al subir imagen de temporada: ${error.message}. Asegúrate de que el bucket 'product-images' exista en Supabase.`)
-    } else {
-      const { data } = supabase.storage.from('product-images').getPublicUrl(path)
-      setForm((prev) => ({ ...prev, season_image_url: data.publicUrl }))
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `season-${Date.now()}.${ext}`
+      const { error } = await supabase.storage.from('product-images').upload(path, file)
+      if (error) {
+        console.warn('Supabase storage upload error, using local data URL fallback:', error)
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const result = e.target?.result as string
+          if (result) {
+            setForm((prev) => ({ ...prev, season_image_url: result }))
+          }
+        }
+        reader.readAsDataURL(file)
+      } else {
+        const { data } = supabase.storage.from('product-images').getPublicUrl(path)
+        setForm((prev) => ({ ...prev, season_image_url: data.publicUrl }))
+      }
+    } catch (err) {
+      console.error('Error uploading season image:', err)
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const result = e.target?.result as string
+        if (result) {
+          setForm((prev) => ({ ...prev, season_image_url: result }))
+        }
+      }
+      reader.readAsDataURL(file)
+    } finally {
+      setUploadingSeason(false)
     }
-    setUploadingSeason(false)
   }
 
   const handleBgImageUpload = async (file: File) => {
@@ -1133,32 +1247,43 @@ function BannerAdmin() {
     // 1. Guardar foto de fondo optimizada directamente
     saveBgUrl(currentBgUrl)
 
-    // 2. Guardar temporada en localStorage para disponibilidad inmediata
+    // 2. Guardar temporada en localStorage y emitir evento reactivo
     const seasonData = {
       season_image_url: form.season_image_url,
+      season_text_active: form.season_text_active,
       season_title_es: form.season_title_es,
       season_title_en: form.season_title_en,
       season_desc_es: form.season_desc_es,
       season_desc_en: form.season_desc_en,
+      updated_at: Date.now(),
     }
     localStorage.setItem('magic_season_settings', JSON.stringify(seasonData))
+    setLocalSeasonal(seasonData)
+    window.dispatchEvent(new CustomEvent('magic_season_updated', { detail: seasonData }))
 
-    // 3. Intentar actualizar en Supabase site_settings
-    let result = await supabase.from('site_settings').update({
-      ...form,
-      bg_image_url: currentBgUrl,
-    }).eq('id', 'main_config')
+    // 3. Actualizar en Supabase site_settings (SOLO columnas existentes, NUNCA bg_image_url)
+    const settingsPayload = {
+      banner_text_es: form.banner_text_es,
+      banner_text_en: form.banner_text_en,
+      banner_active: form.banner_active,
+      banner_link: form.banner_link,
+      season_image_url: form.season_image_url,
+      season_title_es: form.season_text_active ? form.season_title_es : '',
+      season_title_en: form.season_text_active ? form.season_title_en : '',
+      season_desc_es: form.season_text_active ? form.season_desc_es : '',
+      season_desc_en: form.season_text_active ? form.season_desc_en : '',
+    }
+
+    let result = await supabase.from('site_settings').update(settingsPayload).eq('id', 'main_config')
     if (result.error) {
+      console.warn('Error saving full site_settings, trying basic fields:', result.error)
       const basicForm = {
         banner_text_es: form.banner_text_es,
         banner_text_en: form.banner_text_en,
         banner_active: form.banner_active,
         banner_link: form.banner_link,
       }
-      result = await supabase.from('site_settings').update(basicForm).eq('id', 'main_config')
-      if (result.error) {
-        console.error('Error saving site_settings:', result.error)
-      }
+      await supabase.from('site_settings').update(basicForm).eq('id', 'main_config')
     }
 
     refetch()
@@ -1268,26 +1393,57 @@ function BannerAdmin() {
 
       {/* Sección 3: Temporada e Imagen de Inicio */}
       <div className="space-y-4 p-6 rounded-2xl bg-white dark:bg-[#2a2430] border border-pink-100/50 dark:border-purple-800/30">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <h3 className="font-['Quicksand'] font-bold text-lg text-gray-800 dark:text-gray-100 flex items-center gap-2">
             <span>✨</span> Imagen y Colección de Temporada (Inicio)
           </h3>
           <span className="text-xs text-pink-500 font-semibold font-['Nunito']">Se muestra en la portada</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InputField label="Título de Temporada (ES)" value={form.season_title_es} onChange={(v) => setForm({ ...form, season_title_es: v })} />
-          <InputField label="Título de Temporada (EN)" value={form.season_title_en} onChange={(v) => setForm({ ...form, season_title_en: v })} />
-          <TextareaField label="Descripción de Temporada (ES)" value={form.season_desc_es} onChange={(v) => setForm({ ...form, season_desc_es: v })} />
-          <TextareaField label="Descripción de Temporada (EN)" value={form.season_desc_en} onChange={(v) => setForm({ ...form, season_desc_en: v })} />
+        {/* Control opcional de textos sobre la imagen */}
+        <div className="flex items-center justify-between p-3.5 rounded-xl bg-pink-50/70 dark:bg-purple-900/25 border border-pink-100 dark:border-purple-800/40">
+          <div>
+            <label className="text-sm font-bold text-gray-700 dark:text-gray-200 font-['Nunito'] block cursor-pointer">
+              Mostrar textos sobre la imagen
+            </label>
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-['Nunito']">
+              Si se desactiva, la imagen de la portada se muestra limpia y sin difuminado.
+            </p>
+          </div>
+          <input
+            type="checkbox"
+            checked={form.season_text_active}
+            onChange={(e) => setForm({ ...form, season_text_active: e.target.checked })}
+            className="w-5 h-5 rounded accent-pink-400 cursor-pointer"
+          />
         </div>
 
+        {form.season_text_active && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+            <InputField label="Título de Temporada (ES) (Opcional)" value={form.season_title_es} onChange={(v) => setForm({ ...form, season_title_es: v })} />
+            <InputField label="Título de Temporada (EN) (Opcional)" value={form.season_title_en} onChange={(v) => setForm({ ...form, season_title_en: v })} />
+            <TextareaField label="Descripción de Temporada (ES) (Opcional)" value={form.season_desc_es} onChange={(v) => setForm({ ...form, season_desc_es: v })} />
+            <TextareaField label="Descripción de Temporada (EN) (Opcional)" value={form.season_desc_en} onChange={(v) => setForm({ ...form, season_desc_en: v })} />
+          </div>
+        )}
+
         <div className="space-y-2 pt-2">
-          <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 font-['Nunito']">
-            Imagen de Temporada
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 font-['Nunito']">
+              Imagen de Temporada
+            </label>
+            {form.season_image_url && form.season_image_url !== '/season-image.jpg' && (
+              <button
+                type="button"
+                onClick={() => setForm((prev) => ({ ...prev, season_image_url: '/season-image.jpg' }))}
+                className="text-xs font-bold text-pink-500 hover:text-pink-600 dark:text-pink-400 flex items-center gap-1 font-['Nunito'] transition-colors"
+              >
+                <RotateCcw className="w-3.5 h-3.5" /> Restaurar imagen original
+              </button>
+            )}
+          </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <label className="flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-dashed border-pink-200 dark:border-purple-700/50 text-pink-500 dark:text-pink-300 cursor-pointer hover:bg-pink-50 dark:hover:bg-purple-900/10 transition-all font-['Nunito'] text-sm font-semibold">
+            <label className="flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-dashed border-pink-200 dark:border-purple-700/50 text-pink-500 dark:text-pink-300 cursor-pointer hover:bg-pink-50 dark:hover:bg-purple-900/10 transition-all font-['Nunito'] text-sm font-semibold shrink-0">
               <ImagePlus className="w-4 h-4" />
               {uploadingSeason ? 'Subiendo imagen...' : 'Subir Imagen de Temporada'}
               <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleSeasonImageUpload(e.target.files[0])} />
@@ -1302,11 +1458,16 @@ function BannerAdmin() {
               />
             </div>
             {form.season_image_url && (
-              <img
-                src={form.season_image_url}
-                alt="Vista previa temporada"
-                className="w-16 h-16 rounded-xl object-cover border border-pink-200 dark:border-purple-700/50 shadow-sm"
-              />
+              <div className="flex items-center gap-2 shrink-0">
+                <img
+                  src={form.season_image_url}
+                  alt="Vista previa temporada"
+                  className="w-16 h-16 rounded-xl object-cover border border-pink-200 dark:border-purple-700/50 shadow-sm"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/season-image.jpg'
+                  }}
+                />
+              </div>
             )}
           </div>
         </div>

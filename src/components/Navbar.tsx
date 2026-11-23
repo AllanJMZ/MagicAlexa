@@ -47,9 +47,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`sticky top-0 z-50 transition-all duration-500 ${scrolled
-        ? 'backdrop-blur-xl bg-white/85 dark:bg-[#1F1B24]/85 border-b border-pink-200/50 dark:border-purple-800/50 shadow-sm shadow-pink-100/20 dark:shadow-purple-900/10'
-        : 'backdrop-blur-md bg-white/70 dark:bg-[#1F1B24]/70 border-b border-transparent'
+      className={`sticky top-0 z-50 transition-all duration-300 bg-white dark:bg-[#121214] border-b border-gray-200 dark:border-neutral-800 ${scrolled ? 'shadow-md' : 'shadow-xs'
         }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -72,13 +70,13 @@ export default function Navbar() {
                 key={link.to}
                 to={link.to}
                 className={`relative px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 font-['Nunito'] ${isActive(link.to)
-                  ? 'bg-gradient-to-r from-pink-200 to-purple-200 dark:from-pink-900/40 dark:to-purple-900/40 text-pink-700 dark:text-pink-300 shadow-sm'
+                  ? 'bg-pink-100 text-pink-700 font-bold border border-pink-200/80 dark:bg-pink-900/40 dark:text-pink-200 dark:border-pink-700/50 shadow-xs'
                   : 'text-gray-600 dark:text-gray-300 hover:bg-pink-50 dark:hover:bg-purple-900/20 hover:text-pink-600 dark:hover:text-pink-300'
                   }`}
               >
                 {link.label}
                 {isActive(link.to) && (
-                  <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-pink-400 rounded-full" />
+                  <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-pink-500 dark:bg-pink-400 rounded-full" />
                 )}
               </Link>
             ))}
@@ -164,14 +162,14 @@ export default function Navbar() {
         className={`md:hidden overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${mobileOpen ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0'
           }`}
       >
-        <div className="px-4 py-3 space-y-1 bg-white/95 dark:bg-[#1F1B24]/95 backdrop-blur-xl border-t border-pink-100 dark:border-purple-800/30">
+        <div className="px-4 py-3 space-y-1 bg-white dark:bg-[#121214] border-t border-gray-200 dark:border-neutral-800 shadow-lg">
           {links.map((link, i) => (
             <Link
               key={link.to}
               to={link.to}
               onClick={() => setMobileOpen(false)}
               className={`block px-4 py-2.5 rounded-xl text-sm font-semibold font-['Nunito'] transition-all duration-300 ${isActive(link.to)
-                ? 'bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 text-pink-700 dark:text-pink-300'
+                ? 'bg-pink-100 text-pink-700 font-bold border border-pink-200/80 dark:bg-pink-900/30 dark:text-pink-200 dark:border-pink-700/40'
                 : 'text-gray-600 dark:text-gray-300 hover:bg-pink-50 dark:hover:bg-purple-900/20'
                 }`}
               style={{
@@ -183,19 +181,6 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-          <Link
-            to="/admin"
-            onClick={() => setMobileOpen(false)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-500 dark:text-gray-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all"
-            style={{
-              transitionDelay: mobileOpen ? `${links.length * 50}ms` : '0ms',
-              transform: mobileOpen ? 'translateX(0)' : 'translateX(-10px)',
-              opacity: mobileOpen ? 1 : 0,
-            }}
-          >
-            <ShieldCheck className="w-4 h-4" />
-            {t('nav_admin')}
-          </Link>
 
           {/* Mobile social links */}
           <div className="flex items-center gap-3 px-4 pt-2 sm:hidden">

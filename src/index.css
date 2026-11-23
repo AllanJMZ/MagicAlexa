@@ -327,14 +327,47 @@
   transform: scale(0.95);
 }
 
-/* ─── Gradient text util ────────────── */
+/* ─── Gradient text util adaptativo a modo claro y oscuro ────────────── */
 .text-gradient {
-  background: linear-gradient(135deg, #ec4899, #a855f7, #ec4899);
+  background: linear-gradient(135deg, #db2777 0%, #be185d 40%, #9333ea 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: gradient 4s ease infinite;
+  filter: none;
+  animation: gradient 6s ease infinite;
+  transition: all 0.3s ease;
+}
+
+/* En modo oscuro */
+.dark .text-gradient,
+[data-theme="dark"] .text-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, #fff1f2 25%, #fbcfe8 60%, #e9d5ff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 16px rgba(236, 72, 153, 0.4));
+  animation: gradient 6s ease infinite;
+}
+
+/* ─── Hero Title - Diseñado para máxima nitidez y viveza en modo claro y oscuro ─── */
+.hero-title-light-bg {
+  background: linear-gradient(135deg, #db2777 0%, #be185d 40%, #7e22ce 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: none;
+  letter-spacing: -0.015em;
+}
+
+.hero-title-dark-bg {
+  background: linear-gradient(135deg, #ffffff 0%, #fff1f2 25%, #fbcfe8 60%, #e9d5ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 20px rgba(236, 72, 153, 0.4));
+  letter-spacing: -0.015em;
 }
 
 /* ─── Custom Background Pattern ─────────── */

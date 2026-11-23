@@ -370,14 +370,9 @@
   letter-spacing: -0.015em;
 }
 
-/* ─── Custom Background Pattern ─────────── */
+/* ─── Custom Background Canvas ─────────── */
 body {
   font-family: 'Nunito', sans-serif;
-  background-image: 
-    radial-gradient(circle at 20% 80%, rgba(236, 72, 153, 0.04) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.04) 0%, transparent 50%),
-    radial-gradient(circle, #f9d5e5 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 30px 30px;
   background-color: #FFFDF9;
   min-height: 100vh;
 }
@@ -385,11 +380,6 @@ body {
 .dark body,
 html.dark body {
   background-color: #1F1B24;
-  background-image: 
-    radial-gradient(circle at 20% 80%, rgba(236, 72, 153, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.03) 0%, transparent 50%),
-    radial-gradient(circle, rgba(168, 130, 195, 0.08) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 30px 30px;
 }
 
 /* ─── Scrollbar Styling ────────────────── */

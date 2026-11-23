@@ -5,6 +5,7 @@ import { ArrowRight, ChevronLeft, ChevronRight, Heart, Package, ShieldCheck, Spa
 import { useReveal, useMounted } from '../hooks/useAnimations'
 import { useProducts, useSiteSettings } from '../hooks/useSupabase'
 import { useFeaturedProducts } from '../hooks/useFeaturedProducts'
+import { useSiteBackground } from '../hooks/useSiteBackground'
 import { useTheme } from '../context/ThemeContext'
 import type { Product } from '../types'
 import AnimatedStar from '../components/AnimatedStar'
@@ -18,8 +19,9 @@ export default function Home() {
   const mounted = useMounted()
   const { products } = useProducts()
   const { settings } = useSiteSettings()
+  const { bgUrl } = useSiteBackground()
   const { theme } = useTheme()
-  const isDarkBackground = theme === 'dark'
+  const isDarkBackground = theme === 'dark' || Boolean(bgUrl)
   const { getFeaturedProducts } = useFeaturedProducts()
   const featuredProducts = getFeaturedProducts(products)
   const [modalProduct, setModalProduct] = useState<{ product: Product; imgIndex: number } | null>(null)
@@ -155,13 +157,6 @@ export default function Home() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative overflow-hidden py-12 sm:py-20 lg:py-24">
-        {/* Background decoration */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-pink-200/30 dark:bg-pink-900/10 rounded-full blur-3xl animate-float" />
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-200/30 dark:bg-purple-900/10 rounded-full blur-3xl animate-float-delayed" />
-          <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-yellow-200/20 dark:bg-yellow-900/10 rounded-full blur-3xl animate-float" />
-        </div>
-
         {/* Floating sparkles */}
         <div className="absolute top-20 left-[8%] animate-float">
           <Star className="w-4 h-4 text-yellow-300 fill-yellow-300 opacity-60" />
@@ -330,7 +325,7 @@ export default function Home() {
 
       {/* Mini Carrusel de Artículos Destacados (Hasta 10 artículos) */}
       {featuredProducts.length > 0 && (
-        <section className="py-8 sm:py-14 bg-gradient-to-b from-transparent via-pink-50/40 dark:via-purple-950/20 to-transparent">
+        <section className="py-8 sm:py-14">
           <div className="max-w-7xl mx-auto px-4">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 sm:mb-8">

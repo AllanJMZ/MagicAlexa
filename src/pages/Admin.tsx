@@ -1160,6 +1160,11 @@ function BannerAdmin() {
   const [uploadingBg, setUploadingBg] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  // Sincronizar currentBgUrl cuando se carga desde la nube de Supabase
+  useEffect(() => {
+    setCurrentBgUrl(bgUrl)
+  }, [bgUrl])
+
   const handleSeasonImageUpload = async (file: File) => {
     setUploadingSeason(true)
     try {
@@ -1211,10 +1216,7 @@ function BannerAdmin() {
   }
 
   const handleSave = async () => {
-    // 1. Guardar foto de fondo optimizada directamente
-    saveBgUrl(currentBgUrl)
-
-    // 2. Guardar temporada en localStorage y emitir evento reactivo
+    // 1. Guardar temporada
     const seasonData = {
       season_image_url: form.season_image_url,
       season_text_active: form.season_text_active,
@@ -1228,7 +1230,10 @@ function BannerAdmin() {
     setLocalSeasonal(seasonData)
     window.dispatchEvent(new CustomEvent('magic_season_updated', { detail: seasonData }))
 
-    // 3. Actualizar en Supabase site_settings (SOLO columnas existentes, NUNCA bg_image_url)
+    // 2. Guardar foto de fondo y configuración completa en la nube de Supabase
+    await saveBgUrl(currentBgUrl)
+
+    // 3. Actualizar en Supabase site_settings para los campos compatibles
     const settingsPayload = {
       banner_text_es: form.banner_text_es,
       banner_text_en: form.banner_text_en,
